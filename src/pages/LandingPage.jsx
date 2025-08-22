@@ -99,10 +99,10 @@ const Hero = () => {
 // --- Team Section ---
 const TeamSection = () => {
   const teamMembers = [
-    { id: 1, name: "Ved Sharanagate", role: "Lead Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/ved.webp", socials: { twitter: "#", linkedin: "#", github: "#" } },
-    { id: 2, name: "Prasad Pande", role: "Backend Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/prasad.webp", socials: { twitter: "#", linkedin: "#", github: "#" } },
-    { id: 3, name: "Vyankatesh Punnal", role: "Frontend Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/varun.webp", socials: { twitter: "#", linkedin: "#", github: "#" } },
-    { id: 4, name: "Sudhanshu Mahurkar", role: "Frontend Developer", image: "https://placehold.co/400x400/F9A8D4/831843?text=Sudhanshu", socials: { twitter: "#", linkedin: "#", github: "#" } },
+    { id: 1, name: "Ved Sharanagate", role: "Lead Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/ved.webp", socials: { twitter: "https://x.com/ved_v7/", linkedin: "https://www.linkedin.com/in/ved-sharanagate/", github: "https://github.com/VortexV7" } },
+    { id: 2, name: "Prasad Pande", role: "Backend Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/prasad.webp", socials: { twitter: "https://x.com/Xprasadpande/", linkedin: "https://www.linkedin.com/in/prasadvaibhavpande/", github: "https://github.com/Xprasadpande" } },
+    { id: 3, name: "Vyankatesh Punnal", role: "Frontend Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/varun.webp", socials: { twitter: "#", linkedin: "https://www.linkedin.com/in/vyankatesh-punnal-652007346/", github: "https://github.com/knox05" } },
+    { id: 4, name: "Sudhanshu Mahurkar", role: "Frontend Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/sudhanshu.webp", socials: { twitter: "#", linkedin: "https://www.linkedin.com/in/sudhanshu-mahurkar-769077356/", github: "https://github.com/Sudhanshu69-dev" } },
   ];
   const [activeMember, setActiveMember] = useState(teamMembers[0]);
 
