@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhET Generator Simulation</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #005AA7 0%, #FFFDE4 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        header {
+            background: #005AA7;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        .simulation-area {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .canvas-container {
+            flex: 1;
+            min-width: 300px;
+            border: 2px solid #005AA7;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #e9eff5;
+            position: relative;
+        }
+
+        #simulationCanvas {
+            display: block;
+            background: #e9eff5;
+            width: 100%;
+            height: 400px;
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 300px;
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #005AA7;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #005AA7;
+            padding-bottom: 5px;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+            -webkit-appearance: none;
+            height: 8px;
+            background: #d1d9e6;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #005AA7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            text-align: center;
+            font-weight: 600;
+            color: #005AA7;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background: #005AA7;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex: 1;
+        }
+
+        button:hover {
+            background: #004a8b;
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .readouts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .readout-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .readout-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #005AA7;
+            margin-top: 5px;
+        }
+
+        .key-concepts {
+            background: #e8f4fc;
+            padding: 20px;
+            border-top: 3px solid #005AA7;
+        }
+
+        .concept {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .concept h3 {
+            color: #005AA7;
+            margin-bottom: 8px;
+        }
+
+        .concept p {
+            line-height: 1.5;
+        }
+
+        .concept-highlight {
+            background: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #555;
+            opacity: 0.8;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #b3e5fc;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+            font-weight: bold;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .tab.active {
+            background: #005AA7;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .simulation-area {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .canvas-container {
+                min-width: unset;
+            }
+            
+            #simulationCanvas {
+                height: 300px;
+            }
+            
+            .controls {
+                min-width: unset;
+                padding: 15px;
+            }
+
+            .readouts {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 5px;
+                border-radius: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Generator Simulation</h1>
+            <p class="subtitle">Understanding electromagnetic induction</p>
+        </header>
+        
+        <div class="simulation-area">
+            <div class="canvas-container">
+                <canvas id="simulationCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h2>Controls</h2>
+                    
+                    <div class="slider-container">
+                        <label for="rotationSpeed">Rotation Speed</label>
+                        <input type="range" id="rotationSpeed" min="0" max="100" value="50">
+                        <div class="value-display"><span id="speedValue">50</span>%</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="fieldStrength">Magnetic Field Strength</label>
+                        <input type="range" id="fieldStrength" min="0" max="100" value="75">
+                        <div class="value-display"><span id="fieldValue">75</span>%</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="coilSize">Number of Coils</label>
+                        <input type="range" id="coilSize" min="1" max="10" value="5">
+                        <div class="value-display"><span id="coilValue">5</span></div>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="startBtn">Start</button>
+                    <button id="stopBtn" disabled>Stop</button>
+                    <button id="reverseBtn">Reverse</button>
+                </div>
+                
+                <div class="readouts">
+                    <div class="readout-box">
+                        <div>Current Output</div>
+                        <div class="readout-value" id="currentOutput">0.0 V</div>
+                    </div>
+                    <div class="readout-box">
+                        <div>Power Output</div>
+                        <div class="readout-value" id="powerOutput">0.0 W</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="key-concepts">
+            <h2>Key Concepts in Electromagnetic Induction</h2>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="faraday">Faraday's Law</div>
+                <div class="tab" data-tab="lenz">Lenz's Law</div>
+                <div class="tab" data-tab="applications">Applications</div>
+            </div>
+            
+            <div class="tab-content active" id="faraday-content">
+                <div class="concept">
+                    <h3>Faraday's Law of Electromagnetic Induction</h3>
+                    <p>Faraday's law states that a changing magnetic flux through a circuit induces an electromotive force (EMF) in the circuit. The magnitude of the induced EMF is equal to the rate of change of magnetic flux.</p>
+                    <p>Mathematically: <span class="concept-highlight">ε = -dΦ<sub>B</sub>/dt</span></p>
+                    <p>Where ε is the induced EMF, and Φ<sub>B</sub> is the magnetic flux through the circuit.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="lenz-content">
+                <div class="concept">
+                    <h3>Lenz's Law</h3>
+                    <p>Lenz's law gives the direction of the induced EMF and current resulting from electromagnetic induction. It states that the direction of the induced current is such that it opposes the change in magnetic flux that produced it.</p>
+                    <p>This is represented by the negative sign in Faraday's law: <span class="concept-highlight">ε = -dΦ<sub>B</sub>/dt</span></p>
+                    <p>Lenz's law is a consequence of the conservation of energy - the induced current opposes the change that created it, requiring work to be done to maintain the change.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="applications-content">
+                <div class="concept">
+                    <h3>Applications of Electromagnetic Induction</h3>
+                    <p><span class="concept-highlight">Electrical Generators:</span> Convert mechanical energy into electrical energy by rotating coils in magnetic fields.</p>
+                    <p><span class="concept-highlight">Transformers:</span> Transfer electrical energy between circuits through electromagnetic induction, changing voltage levels.</p>
+                    <p><span class="concept-highlight">Induction Cooking:</span> Uses electromagnetic induction to heat cooking vessels directly.</p>
+                    <p><span class="concept-highlight">Wireless Charging:</span> Transfers energy through electromagnetic induction without physical connection.</p>
+                    <p><span class="concept-highlight">Electric Motors:</span> Work on the reverse principle of generators, converting electrical energy to mechanical energy.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Canvas and context
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Control elements
+        const rotationSpeed = document.getElementById('rotationSpeed');
+        const fieldStrength = document.getElementById('fieldStrength');
+        const coilSize = document.getElementById('coilSize');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const reverseBtn = document.getElementById('reverseBtn');
+        
+        // Display elements
+        const speedValue = document.getElementById('speedValue');
+        const fieldValue = document.getElementById('fieldValue');
+        const coilValue = document.getElementById('coilValue');
+        const currentOutput = document.getElementById('currentOutput');
+        const powerOutput = document.getElementById('powerOutput');
+        
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}-content`) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+        
+        // Simulation state
+        let isRunning = false;
+        let rotationDirection = 1; // 1 for clockwise, -1 for counterclockwise
+        let rotationAngle = 0;
+        let animationId = null;
+        
+        // Update canvas size when window is resized
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawSimulation();
+        }
+        
+        // Initialize event listeners
+        function initEvents() {
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // Control listeners
+            rotationSpeed.addEventListener('input', () => {
+                speedValue.textContent = rotationSpeed.value;
+                updateReadouts();
+            });
+            
+            fieldStrength.addEventListener('input', () => {
+                fieldValue.textContent = fieldStrength.value;
+                updateReadouts();
+            });
+            
+            coilSize.addEventListener('input', () => {
+                coilValue.textContent = coilSize.value;
+                updateReadouts();
+            });
+            
+            // Button listeners
+            startBtn.addEventListener('click', () => {
+                if (!isRunning) {
+                    isRunning = true;
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    animate();
+                }
+            });
+            
+            stopBtn.addEventListener('click', () => {
+                isRunning = false;
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                updateReadouts();
+            });
+            
+            reverseBtn.addEventListener('click', () => {
+                rotationDirection *= -1;
+                updateReadouts();
+            });
+        }
+        
+        // Update the output readouts
+        function updateReadouts() {
+            if (!isRunning) {
+                currentOutput.textContent = "0.0 V";
+                powerOutput.textContent = "0.0 W";
+                return;
+            }
+            
+            const speed = rotationSpeed.value / 100;
+            const field = fieldStrength.value / 100;
+            const coils = parseInt(coilSize.value);
+            
+            // Calculate simulated output values
+            const voltage = (speed * field * coils * 12 * rotationDirection).toFixed(1);
+            const power = (speed * field * coils * coils * 0.5).toFixed(1);
+            
+            currentOutput.textContent = `${voltage} V`;
+            powerOutput.textContent = `${power} W`;
+        }
+        
+        // Draw the generator simulation
+        function drawSimulation() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) * 0.3;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw magnetic field lines
+            ctx.strokeStyle = '#26d0ce';
+            ctx.setLineDash([5, 15]);
+            ctx.lineWidth = 2;
+            
+            for (let i = -4; i <= 4; i++) {
+                const y = centerY + i * 30;
+                ctx.beginPath();
+                ctx.moveTo(centerX - radius * 1.5, y);
+                ctx.lineTo(centerX + radius * 1.5, y);
+                ctx.stroke();
+            }
+            
+            ctx.setLineDash([]);
+            
+            // Draw north and south poles
+            ctx.font = "20px Arial";
+            ctx.fillStyle = '#e74c3c';
+            ctx.textAlign = 'center';
+            ctx.fillText("N", centerX - radius * 1.6, centerY - 30);
+            ctx.fillText("S", centerX + radius * 1.6, centerY - 30);
+            
+            // Draw the coil
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotationAngle);
+            
+            // Coil structure
+            ctx.strokeStyle = '#ff9d00';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            
+            const coils = parseInt(coilSize.value);
+            for (let i = 0; i < coils; i++) {
+                const angle = (i * 2 * Math.PI) / coils;
+                const x = radius * Math.cos(angle);
+                const y = radius * Math.sin(angle);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.closePath();
+            ctx.stroke();
+            
+            // Draw the rotating axle
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(0, 0, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+            
+            // Draw wires
+            ctx.strokeStyle = '#ff9d00';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(centerX + radius + 20, centerY);
+            ctx.lineTo(centerX + radius * 1.5, centerY);
+            ctx.moveTo(centerX - radius - 20, centerY);
+            ctx.lineTo(centerX - radius * 1.5, centerY);
+            ctx.stroke();
+            
+            // Draw light bulb or meter
+            ctx.fillStyle = '#f1c40f';
+            ctx.beginPath();
+            ctx.arc(centerX + radius * 1.8, centerY, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(centerX - radius * 1.8, centerY, 15, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Animation loop
+        function animate() {
+            if (!isRunning) return;
+            
+            // Update rotation angle based on speed and direction
+            const speed = rotationSpeed.value / 100;
+            rotationAngle += 0.05 * speed * rotationDirection;
+            
+            drawSimulation();
+            updateReadouts();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // Initialize the simulation
+        function init() {
+            initEvents();
+            drawSimulation();
+        }
+        
+        // Start everything
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Buoyancy Lab - STEM Education</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #005AA7 0%, #FFFDE4 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            color: #1a2a6c;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            color: #555;
+        }
+
+        .lab-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .simulation-panel, .control-panel, .concepts, .data-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .simulation-panel {
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .control-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            color: #1a2a6c;
+        }
+
+        .simulation-area {
+            height: 500px;
+            position: relative;
+            background: #e9eff5;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            border-radius: 10px;
+            display: block;
+            width: 100%; /* Make canvas responsive */
+            height: auto;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            background: #d1d9e6;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #005AA7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            min-width: 60px;
+            text-align: center;
+            background: #e9eff5;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #005AA7;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #004a8b;
+            transform: translateY(-2px);
+        }
+
+        .object-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .object-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #e9eff5;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100px;
+            font-weight: 500;
+        }
+
+        .object-btn:hover {
+            background: #d1d9e6;
+            transform: translateY(-2px);
+        }
+
+        .object-btn.active {
+            background: #005AA7;
+            color: #fff;
+        }
+
+        .object-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 8px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .concepts {
+            margin-top: 30px;
+            padding: 25px;
+        }
+
+        .concepts h2 {
+            margin-bottom: 20px;
+            color: #1a2a6c;
+        }
+
+        .concept-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .concept-item {
+            background: #e9eff5;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #d1d9e6;
+        }
+
+        .concept-item h3 {
+            margin-bottom: 10px;
+            color: #005AA7;
+            font-weight: 600;
+        }
+
+        .data-panel {
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        .data-panel h3 {
+            margin-bottom: 15px;
+            color: #005AA7;
+            font-weight: 600;
+        }
+
+        .data-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .data-item {
+            background: #e9eff5;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d9e6;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            .lab-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .simulation-panel, .control-panel, .concepts, .data-panel {
+                padding: 15px;
+            }
+            .simulation-area {
+                height: 400px;
+            }
+            .data-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+            .object-selector {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .object-btn {
+                width: 80px;
+                padding: 8px;
+            }
+            .object-icon {
+                width: 30px;
+                height: 30px;
+            }
+            .concept-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>3D Buoyancy Lab</h1>
+            <p class="subtitle">Explore Archimedes' Principle and fluid dynamics</p>
+        </header>
+
+        <div class="lab-container">
+            <div class="simulation-panel">
+                <h2 class="panel-title">Simulation</h2>
+                <div class="simulation-area">
+                    <canvas id="labCanvas" width="800" height="500"></canvas>
+                </div>
+
+                <div class="object-selector">
+                    <button class="object-btn" data-type="wood">
+                        <div class="object-icon" style="background-color: #8B4513;"></div>
+                        <span>Wood</span>
+                    </button>
+                    <button class="object-btn" data-type="iron">
+                        <div class="object-icon" style="background-color: #708090;"></div>
+                        <span>Iron</span>
+                    </button>
+                    <button class="object-btn" data-type="plastic">
+                        <div class="object-icon" style="background-color: #FFA500;"></div>
+                        <span>Plastic</span>
+                    </button>
+                    <button class="object-btn" data-type="rubber">
+                        <div class="object-icon" style="background-color: #2E8B57;"></div>
+                        <span>Rubber</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <h2 class="panel-title">Controls</h2>
+
+                <div class="control-group">
+                    <label class="control-label">Water Density</label>
+                    <div class="slider-container">
+                        <input type="range" id="densitySlider" min="200" max="2000" step="50" value="1000">
+                        <div class="value-display"><span id="densityVal">1000</span> kg/m³</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Object Size</label>
+                    <div class="slider-container">
+                        <input type="range" id="sizeSlider" min="15" max="40" step="5" value="25">
+                        <div class="value-display"><span id="sizeVal">25</span> px</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Gravity Strength</label>
+                    <div class="slider-container">
+                        <input type="range" id="gravitySlider" min="5" max="15" step="1" value="9.8">
+                        <div class="value-display"><span id="gravityVal">9.8</span> m/s²</div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="add-btn">Add Object</button>
+                    <button id="reset-btn">Reset Lab</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-panel">
+            <h3>Object Information</h3>
+            <div class="data-content">
+                <div class="data-item">
+                    <strong>Selected Object:</strong> <span id="obj-name">None</span>
+                </div>
+                <div class="data-item">
+                    <strong>Mass:</strong> <span id="obj-mass">0</span> kg
+                </div>
+                <div class="data-item">
+                    <strong>Volume:</strong> <span id="obj-volume">0</span> m³
+                </div>
+                <div class="data-item">
+                    <strong>Density:</strong> <span id="obj-density">0</span> kg/m³
+                </div>
+                <div class="data-item">
+                    <strong>Buoyant Force:</strong> <span id="buoyant-force">0</span> N
+                </div>
+                <div class="data-item">
+                    <strong>Gravitational Force:</strong> <span id="gravity-force">0</span> N
+                </div>
+                <div class="data-item">
+                    <strong>Net Force:</strong> <span id="net-force">0</span> N
+                </div>
+                <div class="data-item">
+                    <strong>Status:</strong> <span id="obj-status">Not in water</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="concepts">
+            <h2>Key Concepts</h2>
+            <div class="concept-list">
+                <div class="concept-item">
+                    <h3>Archimedes' Principle</h3>
+                    <p>Any object immersed in a fluid experiences an upward buoyant force equal to the weight of the fluid displaced by the object.</p>
+                </div>
+                <div class="concept-item">
+                    <h3>Buoyancy</h3>
+                    <p>The ability of a fluid to exert an upward force on an object placed in it, allowing objects with lower density than the fluid to float.</p>
+                </div>
+                <div class="concept-item">
+                    <h3>Density</h3>
+                    <p>Mass per unit volume. Objects with density lower than the fluid will float, while those with higher density will sink.</p>
+                </div>
+                <div class="concept-item">
+                    <h3>Fluid Displacement</h3>
+                    <p>When an object is placed in a fluid, it displaces a volume of fluid equal to its own volume, which determines the buoyant force.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById("labCanvas");
+        const ctx = canvas.getContext("2d");
+        const simulationArea = document.querySelector('.simulation-area');
+
+        // Function to resize the canvas
+        function resizeCanvas() {
+            canvas.width = simulationArea.clientWidth;
+            canvas.height = simulationArea.clientHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Controls
+        const densitySlider = document.getElementById("densitySlider");
+        const densityVal = document.getElementById("densityVal");
+        const sizeSlider = document.getElementById("sizeSlider");
+        const sizeVal = document.getElementById("sizeVal");
+        const gravitySlider = document.getElementById("gravitySlider");
+        const gravityVal = document.getElementById("gravityVal");
+        const addBtn = document.getElementById("add-btn");
+        const resetBtn = document.getElementById("reset-btn");
+        const objectBtns = document.querySelectorAll(".object-btn");
+
+        // Data display elements
+        const objName = document.getElementById("obj-name");
+        const objMass = document.getElementById("obj-mass");
+        const objVolume = document.getElementById("obj-volume");
+        const objDensity = document.getElementById("obj-density");
+        const buoyantForce = document.getElementById("buoyant-force");
+        const gravityForce = document.getElementById("gravity-force");
+        const netForce = document.getElementById("net-force");
+        const objStatus = document.getElementById("obj-status");
+
+        // Simulation variables
+        let waterDensity = parseInt(densitySlider.value);
+        let gravity = parseFloat(gravitySlider.value);
+        let selectedObjectType = "wood";
+        let selectedObject = null;
+
+        // Object properties
+        const objectProperties = {
+            wood: { density: 700, color: "#8B4513", name: "Wood" },
+            iron: { density: 7870, color: "#708090", name: "Iron" },
+            plastic: { density: 950, color: "#FFA500", name: "Plastic" },
+            rubber: { density: 1100, color: "#2E8B57", name: "Rubber" }
+        };
+
+        // Create texture patterns
+        function createWoodTexture(color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 100;
+            canvas.height = 100;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, 100, 100);
+            ctx.strokeStyle = "#5D4037";
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 20; i++) {
+                const y = Math.random() * 100;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.bezierCurveTo(25, y + 5 - Math.random() * 10, 75, y + 5 - Math.random() * 10, 100, y);
+                ctx.stroke();
+            }
+            return ctx.createPattern(canvas, 'repeat');
+        }
+
+        function createMetalTexture(color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 100;
+            canvas.height = 100;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(50, 50, 0, 50, 50, 70);
+            gradient.addColorStop(0, "#FFF");
+            gradient.addColorStop(0.5, color);
+            gradient.addColorStop(1, "#333");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 100, 100);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            for (let i = 0; i < 30; i++) {
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const size = Math.random() * 2;
+                ctx.fillRect(x, y, size, size);
+            }
+            return ctx.createPattern(canvas, 'repeat');
+        }
+
+        function createPlasticTexture(color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 100;
+            canvas.height = 100;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, 100, 100);
+            const gradient = ctx.createLinearGradient(0, 0, 100, 100);
+            gradient.addColorStop(0, "rgba(255, 255, 255, 0.3)");
+            gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 100, 100);
+            return ctx.createPattern(canvas, 'repeat');
+        }
+
+        function createRubberTexture(color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 100;
+            canvas.height = 100;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, 100, 100);
+            ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const size = Math.random() * 3;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            return ctx.createPattern(canvas, 'repeat');
+        }
+
+        // Object class
+        class BuoyancyObject {
+            constructor(x, y, r, type) {
+                this.x = x;
+                this.y = y;
+                this.r = r;
+                this.type = type;
+                this.properties = objectProperties[type];
+                this.mass = this.properties.density * this.volume;
+                this.isDragging = false;
+                this.vy = 0;
+                this.vx = 0;
+                if (type === "wood") this.texture = createWoodTexture(this.properties.color);
+                else if (type === "iron") this.texture = createMetalTexture(this.properties.color);
+                else if (type === "plastic") this.texture = createPlasticTexture(this.properties.color);
+                else if (type === "rubber") this.texture = createRubberTexture(this.properties.color);
+            }
+
+            get volume() {
+                return (4/3) * Math.PI * Math.pow(this.r/100, 3);
+            }
+
+            get density() {
+                return this.mass / this.volume;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fillStyle = this.texture;
+                ctx.fill();
+                ctx.strokeStyle = "#777";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(this.x - this.r/3, this.y - this.r/3, this.r/3, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                ctx.fill();
+            }
+
+            update() {
+                if (!this.isDragging) {
+                    this.vy += gravity * 0.05;
+                    if (this.y + this.r > canvas.height * 0.4) {
+                        const displacedVolume = this.volume * Math.min(1, (this.y + this.r - canvas.height * 0.4) / (2 * this.r));
+                        const buoyancyForce = waterDensity * displacedVolume * gravity;
+                        const gravityForce = this.mass * gravity;
+                        this.vy -= (buoyancyForce / this.mass) * 0.05;
+                    }
+                    this.vy *= 0.98;
+                    this.vx *= 0.98;
+                    this.y += this.vy;
+                    this.x += this.vx;
+                    if (this.y + this.r > canvas.height) {
+                        this.y = canvas.height - this.r;
+                        this.vy *= -0.7;
+                    }
+                    if (this.x - this.r < 0) {
+                        this.x = this.r;
+                        this.vx *= -0.7;
+                    } else if (this.x + this.r > canvas.width) {
+                        this.x = canvas.width - this.r;
+                        this.vx *= -0.7;
+                    }
+                }
+                this.draw();
+            }
+        }
+
+        // Create initial objects
+        const objects = [
+            new BuoyancyObject(canvas.width * 0.2, 100, 25, "wood"),
+            new BuoyancyObject(canvas.width * 0.4, 100, 25, "iron"),
+            new BuoyancyObject(canvas.width * 0.6, 100, 25, "plastic"),
+            new BuoyancyObject(canvas.width * 0.8, 100, 25, "rubber")
+        ];
+
+        let draggingObj = null;
+
+        function drawWater() {
+            const waveHeight = 10;
+            const time = Date.now() / 1000;
+            const waterLevel = canvas.height * 0.4;
+            const gradient = ctx.createLinearGradient(0, waterLevel, 0, canvas.height);
+            gradient.addColorStop(0, "#005AA7");
+            gradient.addColorStop(1, "#004a8b");
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(0, waterLevel);
+            for (let x = 0; x <= canvas.width; x += 10) {
+                const y = waterLevel + Math.sin(x * 0.05 + time) * waveHeight;
+                ctx.lineTo(x, y);
+            }
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(0, waterLevel);
+            for (let x = 0; x <= canvas.width; x += 10) {
+                const y = waterLevel + Math.sin(x * 0.05 + time) * waveHeight;
+                ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawForces(obj) {
+            const waterLevel = canvas.height * 0.4;
+            if (obj.y + obj.r > waterLevel) {
+                const gForce = obj.mass * gravity;
+                const displacedVolume = obj.volume * Math.min(1, (obj.y + obj.r - waterLevel) / (2 * obj.r));
+                const bForce = waterDensity * displacedVolume * gravity;
+                const netForce = bForce - gForce;
+                ctx.beginPath();
+                ctx.moveTo(obj.x, obj.y);
+                ctx.lineTo(obj.x, obj.y - bForce * 0.2);
+                ctx.strokeStyle = "rgba(0, 150, 255, 0.8)";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(obj.x, obj.y - bForce * 0.2);
+                ctx.lineTo(obj.x - 5, obj.y - bForce * 0.2 + 10);
+                ctx.lineTo(obj.x + 5, obj.y - bForce * 0.2 + 10);
+                ctx.closePath();
+                ctx.fillStyle = "rgba(0, 150, 255, 0.8)";
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(obj.x, obj.y);
+                ctx.lineTo(obj.x, obj.y + gForce * 0.2);
+                ctx.strokeStyle = "rgba(255, 50, 50, 0.8)";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(obj.x, obj.y + gForce * 0.2);
+                ctx.lineTo(obj.x - 5, obj.y + gForce * 0.2 - 10);
+                ctx.lineTo(obj.x + 5, obj.y + gForce * 0.2 - 10);
+                ctx.closePath();
+                ctx.fillStyle = "rgba(255, 50, 50, 0.8)";
+                ctx.fill();
+                if (obj === selectedObject) {
+                    updateObjectData(obj, gForce, bForce, netForce);
+                }
+            } else if (obj === selectedObject) {
+                updateObjectData(obj, obj.mass * gravity, 0, -obj.mass * gravity);
+            }
+        }
+
+        function updateObjectData(obj, gForce, bForce, netForce) {
+            objName.textContent = obj.properties.name;
+            objMass.textContent = obj.mass.toFixed(2);
+            objVolume.textContent = obj.volume.toFixed(4);
+            objDensity.textContent = obj.density.toFixed(2);
+            buoyantForce.textContent = bForce.toFixed(2);
+            gravityForce.textContent = gForce.toFixed(2);
+            netForce.textContent = netForce.toFixed(2);
+            const waterLevel = canvas.height * 0.4;
+            if (obj.y + obj.r > waterLevel) {
+                objStatus.textContent = netForce > 0 ? "Floating" : "Sinking";
+                objStatus.style.color = netForce > 0 ? "#28a745" : "#dc3545";
+            } else {
+                objStatus.textContent = "Not in water";
+                objStatus.style.color = "#555";
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawWater();
+            for (let obj of objects) {
+                obj.update();
+                drawForces(obj);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        canvas.addEventListener("mousedown", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            for (let obj of objects) {
+                const dx = mouseX - obj.x;
+                const dy = mouseY - obj.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < obj.r) {
+                    draggingObj = obj;
+                    obj.isDragging = true;
+                    selectedObject = obj;
+                    obj.vx = 0;
+                    obj.vy = 0;
+                    break;
+                }
+            }
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+            if (draggingObj) {
+                const rect = canvas.getBoundingClientRect();
+                draggingObj.x = e.clientX - rect.left;
+                draggingObj.y = e.clientY - rect.top;
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => {
+            if (draggingObj) {
+                draggingObj.isDragging = false;
+                draggingObj.vx = (Math.random() - 0.5) * 2;
+                draggingObj.vy = (Math.random() - 0.5) * 2;
+                draggingObj = null;
+            }
+        });
+
+        densitySlider.addEventListener("input", () => {
+            waterDensity = parseInt(densitySlider.value);
+            densityVal.textContent = waterDensity;
+        });
+
+        sizeSlider.addEventListener("input", () => {
+            const size = parseInt(sizeSlider.value);
+            sizeVal.textContent = size;
+        });
+
+        gravitySlider.addEventListener("input", () => {
+            gravity = parseFloat(gravitySlider.value);
+            gravityVal.textContent = gravity.toFixed(1);
+        });
+
+        objectBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                objectBtns.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                selectedObjectType = btn.dataset.type;
+            });
+        });
+
+        addBtn.addEventListener("click", () => {
+            const size = parseInt(sizeSlider.value);
+            const x = canvas.width / 2;
+            const y = 100;
+            objects.push(new BuoyancyObject(x, y, size, selectedObjectType));
+            selectedObject = objects[objects.length - 1];
+        });
+
+        resetBtn.addEventListener("click", () => {
+            objects.length = 0;
+            objects.push(
+                new BuoyancyObject(canvas.width * 0.2, 100, 25, "wood"),
+                new BuoyancyObject(canvas.width * 0.4, 100, 25, "iron"),
+                new BuoyancyObject(canvas.width * 0.6, 100, 25, "plastic"),
+                new BuoyancyObject(canvas.width * 0.8, 100, 25, "rubber")
+            );
+            waterDensity = 1000;
+            densitySlider.value = waterDensity;
+            densityVal.textContent = waterDensity;
+            gravity = 9.8;
+            gravitySlider.value = gravity;
+            gravityVal.textContent = gravity.toFixed(1);
+            selectedObject = null;
+            objName.textContent = "None";
+            objMass.textContent = "0";
+            objVolume.textContent = "0";
+            objDensity.textContent = "0";
+            buoyantForce.textContent = "0";
+            gravityForce.textContent = "0";
+            netForce.textContent = "0";
+            objStatus.textContent = "Not in water";
+            objStatus.style.color = "#555";
+        });
+
+        document.querySelector('.object-btn[data-type="wood"]').classList.add("active");
+    </script>
+</body>
+</html>

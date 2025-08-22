@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chemistry Laboratory</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --flask-acid: rgba(231, 76, 60, 0.6);
+            --flask-base: rgba(52, 152, 219, 0.6);
+            --flask-neutral: rgba(46, 204, 113, 0.4);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #005AA7 0%, #FFFDE4 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px 0;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .lab-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .lab-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .experiment-area, .control-panel, .information-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .experiment-area {
+            min-height: 600px;
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 8px;
+        }
+        
+        .workbench {
+            position: relative;
+            height: 400px;
+            background-color: #bdc3c7;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .equipment {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .equipment:hover {
+            transform: scale(1.05);
+        }
+        
+        .flask {
+            width: 80px;
+            height: 120px;
+            background: rgba(236, 240, 241, 0.8);
+            border: 2px solid #bdbdbd;
+            border-radius: 5px 5px 30px 30px;
+            bottom: 50px;
+            left: 150px;
+        }
+        
+        .flask-solution {
+            position: absolute;
+            bottom: 0;
+            left: 5px;
+            right: 5px;
+            border-radius: 0 0 25px 25px;
+            background: var(--flask-neutral);
+            transition: all 0.5s ease;
+        }
+        
+        .burette {
+            width: 40px;
+            height: 200px;
+            background: linear-gradient(to bottom, #e0e0e0 0%, #f5f5f5 100%);
+            border: 2px solid #bdbdbd;
+            border-radius: 5px;
+            top: 50px;
+            right: 150px;
+        }
+        
+        .burette-stand {
+            position: absolute;
+            width: 150px;
+            height: 10px;
+            background: #7f8c8d;
+            top: 40px;
+            right: 125px;
+        }
+        
+        .burette-solution {
+            position: absolute;
+            bottom: 0;
+            left: 5px;
+            right: 5px;
+            background: rgba(41, 128, 185, 0.7);
+            border-radius: 0 0 3px 3px;
+            transition: height 0.5s;
+        }
+        
+        .dropper {
+            width: 20px;
+            height: 60px;
+            background: #3498db;
+            border-radius: 30% 30% 10% 10%;
+            top: 100px;
+            left: 300px;
+            cursor: grab;
+        }
+        
+        .chemicals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .chemical {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .chemical:hover {
+            transform: translateY(-5px);
+        }
+        
+        .acid { background: var(--accent); }
+        .base { background: var(--secondary); }
+        .salt { background: var(--success); }
+        .indicator { background: var(--warning); }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--secondary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn:disabled {
+            background: #bdbdbd;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary { background: var(--secondary); }
+        .btn-primary:hover { background: #2980b9; }
+        
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #27ae60; }
+        
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #c0392b; }
+        
+        .reaction-log {
+            margin-top: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-left: 3px solid var(--secondary);
+            background: white;
+        }
+        
+        .log-acid { border-left-color: var(--accent); }
+        .log-base { border-left-color: var(--secondary); }
+        .log-reaction { border-left-color: var(--success); }
+        .log-warning { border-left-color: var(--warning); }
+        
+        .information-panel {
+            margin-top: 20px;
+        }
+        
+        .concept {
+            margin-bottom: 20px;
+        }
+        
+        .concept h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .concept p {
+            margin-bottom: 10px;
+        }
+        
+        .element-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .badge-acid { background: var(--accent); }
+        .badge-base { background: var(--secondary); }
+        .badge-salt { background: var(--success); }
+        
+        .reaction-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        @keyframes bubbleAnimation {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        .heat-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255,165,0,0.3) 0%, rgba(255,165,0,0) 70%);
+            opacity: 0;
+        }
+        
+        .precipitate {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50% 50% 0 0;
+            transition: height 1s;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .equipment:hover .tooltip {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interactive Chemistry Laboratory</h1>
+            <p class="subtitle">Experiment with Acid-Base Reactions & Create New Compounds</p>
+        </header>
+        
+        <div class="lab-container">
+            <div class="experiment-area">
+                <h2 class="panel-title">Experiment Workbench</h2>
+                
+                <div class="workbench" id="workbench">
+                    <div class="equipment flask" id="flask">
+                        <div class="flask-solution" id="flask-solution"></div>
+                        <div class="precipitate" id="precipitate"></div>
+                        <div class="tooltip">Erlenmeyer Flask</div>
+                    </div>
+                    
+                    <div class="burette-stand"></div>
+                    <div class="equipment burette" id="burette">
+                        <div class="burette-solution" id="burette-solution"></div>
+                        <div class="tooltip">Burette - Precision liquid measurement</div>
+                    </div>
+                    
+                    <div class="equipment dropper" id="dropper">
+                        <div class="tooltip">Dropper - For adding small amounts</div>
+                    </div>
+                    
+                    <div class="reaction-animation" id="reaction-animation"></div>
+                    <div class="heat-animation" id="heat-animation"></div>
+                </div>
+                
+                <div class="chemicals-container">
+                    <div class="chemical acid" id="hcl" draggable="true">
+                        <span>HCl</span>
+                        <div class="tooltip">Hydrochloric Acid - Strong acid</div>
+                    </div>
+                    <div class="chemical base" id="naoh" draggable="true">
+                        <span>NaOH</span>
+                        <div class="tooltip">Sodium Hydroxide - Strong base</div>
+                    </div>
+                    <div class="chemical indicator" id="phenolphthalein" draggable="true">
+                        <span>PHN</span>
+                        <div class="tooltip">Phenolphthalein - pH indicator</div>
+                    </div>
+                    <div class="chemical salt" id="nacl" draggable="true">
+                        <span>NaCl</span>
+                        <div class="tooltip">Sodium Chloride - Table salt</div>
+                    </div>
+                    <div class="chemical acid" id="h2so4" draggable="true">
+                        <span>H₂SO₄</span>
+                        <div class="tooltip">Sulfuric Acid - Strong acid</div>
+                    </div>
+                    <div class="chemical salt" id="agno3" draggable="true">
+                        <span>AgNO₃</span>
+                        <div class="tooltip">Silver Nitrate - Reacts with chlorides</div>
+                    </div>
+                </div>
+                
+                <div class="reaction-log" id="reaction-log">
+                    <div class="log-entry">Welcome to the chemistry lab! Drag chemicals to the flask to start experimenting.</div>
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <h2 class="panel-title">Experiment Controls</h2>
+                
+                <div class="control-group">
+                    <label for="experiment-select">Select Experiment:</label>
+                    <select id="experiment-select">
+                        <option value="titration">Acid-Base Titration</option>
+                        <option value="neutralization">Neutralization Reaction</option>
+                        <option value="precipitation">Precipitation Reaction</option>
+                        <option value="custom">Custom Experiment</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="chemical-select">Add Chemical:</label>
+                    <select id="chemical-select">
+                        <option value="hcl">Hydrochloric Acid (HCl)</option>
+                        <option value="naoh">Sodium Hydroxide (NaOH)</option>
+                        <option value="h2so4">Sulfuric Acid (H₂SO₄)</option>
+                        <option value="ch3cooh">Acetic Acid (CH₃COOH)</option>
+                        <option value="phenolphthalein">Phenolphthalein Indicator</option>
+                        <option value="agno3">Silver Nitrate (AgNO₃)</option>
+                        <option value="nacl">Sodium Chloride (NaCl)</option>
+                    </select>
+                    <button class="btn btn-primary" id="add-chemical">Add to Flask</button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="measurement">Measurement (ml): <span id="measurement-value">0 ml</span></label>
+                    <input type="range" id="measurement" min="0" max="50" value="0">
+                </div>
+                
+                <button class="btn btn-success" id="start-btn">Start Reaction</button>
+                <button class="btn btn-danger" id="reset-btn">Reset Experiment</button>
+                
+                <div class="control-group">
+                    <h3 class="panel-title">Current Mixture</h3>
+                    <div id="mixture-components">
+                        <div>Flask is empty</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="information-panel">
+            <h2 class="panel-title">Chemistry Concepts</h2>
+            
+            <div class="concept">
+                <h3>Acid-Base Titration</h3>
+                <p>Acid-base titration is a technique used to determine the concentration of an acid or base by neutralizing it with a solution of known concentration. The equivalence point is when the moles of acid equal the moles of base. Indicators like phenolphthalein are used to visually detect the endpoint.</p>
+                <p>Example: <span class="element-badge badge-acid">HCl</span> + <span class="element-badge badge-base">NaOH</span> → <span class="element-badge badge-salt">NaCl</span> + <span class="element-badge">H₂O</span></p>
+            </div>
+            
+            <div class="concept">
+                <h3>Neutralization Reactions</h3>
+                <p>Neutralization reactions occur when an acid and a base react to form salt and water. The pH of the resulting solution depends on the strengths of the acid and base.</p>
+                <ul>
+                    <li>Strong acid + strong base → Neutral salt (pH ≈ 7)</li>
+                    <li>Strong acid + weak base → Acidic salt (pH < 7)</li>
+                    <li>Weak acid + strong base → Basic salt (pH > 7)</li>
+                </ul>
+            </div>
+            
+            <div class="concept">
+                <h3>Precipitation Reactions</h3>
+                <p>Precipitation reactions occur when two soluble salts react to form an insoluble salt (precipitate). These reactions are used in qualitative analysis and industrial processes.</p>
+                <p>Example: <span class="element-badge">AgNO₃</span> + <span class="element-badge">NaCl</span> → <span class="element-badge">AgCl</span> (s) + <span class="element-badge">NaNO₃</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const flask = document.getElementById('flask');
+            const flaskSolution = document.getElementById('flask-solution');
+            const buretteSolution = document.getElementById('burette-solution');
+            const reactionLog = document.getElementById('reaction-log');
+            const startBtn = document.getElementById('start-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const addChemicalBtn = document.getElementById('add-chemical');
+            const measurementSlider = document.getElementById('measurement');
+            const measurementValue = document.getElementById('measurement-value');
+            const mixtureComponents = document.getElementById('mixture-components');
+            const reactionAnimation = document.getElementById('reaction-animation');
+            const heatAnimation = document.getElementById('heat-animation');
+            const precipitate = document.getElementById('precipitate');
+            const chemicals = document.querySelectorAll('.chemical');
+            
+            // Experiment state
+            let flaskContents = [];
+            let isExperimentActive = false;
+            
+            // Initialize burette
+            buretteSolution.style.height = '80%';
+            
+            // Update measurement value display
+            measurementSlider.addEventListener('input', function() {
+                measurementValue.textContent = `${this.value} ml`;
+            });
+            
+            // Add chemical to flask
+            addChemicalBtn.addEventListener('click', function() {
+                const chemicalSelect = document.getElementById('chemical-select');
+                const chemical = chemicalSelect.value;
+                const volume = parseInt(measurementSlider.value);
+                
+                if (volume === 0) {
+                    addToLog('Please select a volume greater than 0', 'warning');
+                    return;
+                }
+                
+                addChemicalToFlask(chemical, volume);
+            });
+            
+            // Drag and drop functionality
+            chemicals.forEach(chemical => {
+                chemical.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', this.id);
+                });
+            });
+            
+            flask.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            flask.addEventListener('drop', function(e) {
+                e.preventDefault();
+                const chemicalId = e.dataTransfer.getData('text/plain');
+                const volume = 15; // Default volume for drag and drop
+                
+                addChemicalToFlask(chemicalId, volume);
+            });
+            
+            // Start reaction
+            startBtn.addEventListener('click', function() {
+                if (flaskContents.length === 0) {
+                    addToLog('Flask is empty. Add chemicals first.', 'warning');
+                    return;
+                }
+                
+                isExperimentActive = true;
+                startBtn.disabled = true;
+                
+                // Check what type of reaction might occur
+                const hasAcid = flaskContents.some(item => ['hcl', 'h2so4', 'ch3cooh'].includes(item.chemical));
+                const hasBase = flaskContents.some(item => item.chemical === 'naoh');
+                const hasSilver = flaskContents.some(item => item.chemical === 'agno3');
+                const hasChloride = flaskContents.some(item => item.chemical === 'nacl');
+                
+                if (hasAcid && hasBase) {
+                    performNeutralization();
+                } else if (hasSilver && hasChloride) {
+                    performPrecipitation();
+                } else {
+                    addToLog('No significant reaction occurred.', 'info');
+                    simulateBubbling();
+                    setTimeout(() => {
+                        isExperimentActive = false;
+                        startBtn.disabled = false;
+                    }, 2000);
+                }
+            });
+            
+            // Reset experiment
+            resetBtn.addEventListener('click', function() {
+                flaskContents = [];
+                flaskSolution.style.background = 'var(--flask-neutral)';
+                flaskSolution.style.height = '0%';
+                precipitate.style.height = '0';
+                mixtureComponents.innerHTML = '<div>Flask is empty</div>';
+                addToLog('Experiment has been reset.', 'info');
+                isExperimentActive = false;
+                startBtn.disabled = false;
+            });
+            
+            // Function to add chemical to flask
+            function addChemicalToFlask(chemicalId, volume) {
+                if (isExperimentActive) {
+                    addToLog('Experiment in progress. Reset first to add more chemicals.', 'warning');
+                    return;
+                }
+                
+                let chemicalName;
+                let chemicalClass;
+                
+                switch(chemicalId) {
+                    case 'hcl':
+                        chemicalName = 'Hydrochloric Acid (HCl)';
+                        chemicalClass = 'acid';
+                        break;
+                    case 'naoh':
+                        chemicalName = 'Sodium Hydroxide (NaOH)';
+                        chemicalClass = 'base';
+                        break;
+                    case 'h2so4':
+                        chemicalName = 'Sulfuric Acid (H₂SO₄)';
+                        chemicalClass = 'acid';
+                        break;
+                    case 'ch3cooh':
+                        chemicalName = 'Acetic Acid (CH₃COOH)';
+                        chemicalClass = 'acid';
+                        break;
+                    case 'phenolphthalein':
+                        chemicalName = 'Phenolphthalein Indicator';
+                        chemicalClass = 'indicator';
+                        break;
+                    case 'agno3':
+                        chemicalName = 'Silver Nitrate (AgNO₃)';
+                        chemicalClass = 'salt';
+                        break;
+                    case 'nacl':
+                        chemicalName = 'Sodium Chloride (NaCl)';
+                        chemicalClass = 'salt';
+                        break;
+                }
+                
+                flaskContents.push({ chemical: chemicalId, name: chemicalName, volume: volume, class: chemicalClass });
+                
+                // Update flask appearance
+                updateFlaskAppearance();
+                
+                // Update mixture components
+                updateMixtureDisplay();
+                
+                addToLog(`Added ${volume}ml of ${chemicalName} to the flask.`, chemicalClass);
+            }
+            
+            // Update flask appearance based on contents
+            function updateFlaskAppearance() {
+                const totalVolume = flaskContents.reduce((sum, item) => sum + item.volume, 0);
+                const fillPercentage = Math.min(100, (totalVolume / 150) * 100);
+                
+                flaskSolution.style.height = `${fillPercentage}%`;
+                
+                // Change color based on pH (simplified)
+                const acidVolume = flaskContents.filter(item => item.class === 'acid').reduce((sum, item) => sum + item.volume, 0);
+                const baseVolume = flaskContents.filter(item => item.class === 'base').reduce((sum, item) => sum + item.volume, 0);
+                
+                if (acidVolume > baseVolume) {
+                    flaskSolution.style.background = 'var(--flask-acid)';
+                } else if (baseVolume > acidVolume) {
+                    flaskSolution.style.background = 'var(--flask-base)';
+                } else {
+                    flaskSolution.style.background = 'var(--flask-neutral)';
+                }
+                
+                // Check for indicator
+                const hasIndicator = flaskContents.some(item => item.chemical === 'phenolphthalein');
+                if (hasIndicator && baseVolume > acidVolume) {
+                    flaskSolution.style.background = 'rgba(255, 105, 180, 0.6)'; // Pink for basic solution with indicator
+                }
+            }
+            
+            // Update mixture display
+            function updateMixtureDisplay() {
+                mixtureComponents.innerHTML = '';
+                
+                if (flaskContents.length === 0) {
+                    mixtureComponents.innerHTML = '<div>Flask is empty</div>';
+                    return;
+                }
+                
+                const chemicalCounts = flaskContents.reduce((acc, item) => {
+                    acc[item.name] = (acc[item.name] || 0) + item.volume;
+                    return acc;
+                }, {});
+
+                for (const name in chemicalCounts) {
+                    const component = document.createElement('div');
+                    const chemicalItem = flaskContents.find(item => item.name === name);
+                    component.className = `element-badge badge-${chemicalItem.class}`;
+                    component.textContent = `${name} (${chemicalCounts[name]}ml)`;
+                    mixtureComponents.appendChild(component);
+                }
+            }
+            
+            // Add entry to reaction log
+            function addToLog(message, type = 'info') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                reactionLog.appendChild(entry);
+                reactionLog.scrollTop = reactionLog.scrollHeight;
+            }
+            
+            // Perform neutralization reaction
+            function performNeutralization() {
+                addToLog('Neutralization reaction started!', 'reaction');
+                
+                const acidVolume = flaskContents.filter(item => item.class === 'acid').reduce((sum, item) => sum + item.volume, 0);
+                const baseVolume = flaskContents.filter(item => item.class === 'base').reduce((sum, item) => sum + item.volume, 0);
+                
+                simulateBubbling();
+                
+                setTimeout(() => {
+                    const hasIndicator = flaskContents.some(item => item.chemical === 'phenolphthalein');
+                    
+                    if (Math.abs(acidVolume - baseVolume) < 5) {
+                        addToLog('Perfect neutralization achieved! pH is approximately 7.', 'success');
+                        flaskSolution.style.background = 'var(--flask-neutral)';
+                        if (hasIndicator) {
+                             addToLog('Phenolphthalein indicator is colorless (neutral solution).', 'success');
+                        }
+                    } else if (acidVolume > baseVolume) {
+                        addToLog('Solution is acidic after reaction. pH < 7', 'acid');
+                        flaskSolution.style.background = 'var(--flask-acid)';
+                        if (hasIndicator) {
+                            addToLog('Phenolphthalein indicator is colorless (acidic solution).', 'acid');
+                        }
+                    } else {
+                        addToLog('Solution is basic after reaction. pH > 7', 'base');
+                        flaskSolution.style.background = 'var(--flask-base)';
+                        if (hasIndicator) {
+                            addToLog('Phenolphthalein indicator turned pink (basic solution).', 'base');
+                            flaskSolution.style.background = 'rgba(255, 105, 180, 0.6)';
+                        }
+                    }
+                    
+                    isExperimentActive = false;
+                    startBtn.disabled = false;
+                }, 2000);
+            }
+            
+            // Perform precipitation reaction
+            function performPrecipitation() {
+                addToLog('Precipitation reaction started!', 'reaction');
+                
+                simulateBubbling();
+                
+                setTimeout(() => {
+                    addToLog('White precipitate of Silver Chloride (AgCl) formed.', 'reaction');
+                    precipitate.style.height = '20%';
+                    
+                    isExperimentActive = false;
+                    startBtn.disabled = false;
+                }, 2000);
+            }
+            
+            // Simulate bubbling effect
+            function simulateBubbling() {
+                reactionAnimation.innerHTML = '';
+                
+                for (let i = 0; i < 15; i++) {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    
+                    const size = Math.random() * 15 + 5;
+                    const left = Math.random() * 50 + 25;
+                    
+                    bubble.style.width = `${size}px`;
+                    bubble.style.height = `${size}px`;
+                    bubble.style.left = `${left}%`;
+                    bubble.style.bottom = '20%';
+                    
+                    const delay = Math.random() * 1;
+                    const duration = Math.random() * 1 + 1;
+                    
+                    bubble.style.animation = `bubbleAnimation ${duration}s ease-in-out ${delay}s forwards`;
+                    
+                    reactionAnimation.appendChild(bubble);
+                }
+                
+                heatAnimation.style.opacity = '0.7';
+                setTimeout(() => {
+                    heatAnimation.style.opacity = '0';
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

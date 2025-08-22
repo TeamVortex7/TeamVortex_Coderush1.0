@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Geometry Explorer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #3b82f6 100%);
+            overflow: hidden;
+            color: #1f2937;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+        
+        @media (max-width: 1024px) {
+            #container {
+                flex-direction: column;
+            }
+        }
+        
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            min-height: 400px;
+        }
+        
+        @media (max-width: 1024px) {
+            #canvas-container {
+                height: 60vh;
+                min-height: 350px;
+                flex: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #canvas-container {
+                height: 55vh;
+                min-height: 300px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #canvas-container {
+                height: 50vh;
+                min-height: 250px;
+            }
+        }
+        
+        #controls-panel {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            border-left: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 1024px) {
+            #controls-panel {
+                width: 100%;
+                height: 40vh;
+                border-left: none;
+                border-top: 1px solid rgba(59, 130, 246, 0.3);
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #controls-panel {
+                height: 45vh;
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #controls-panel {
+                height: 50vh;
+                padding: 10px;
+            }
+        }
+        
+        .control-section {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .control-section {
+                padding: 12px;
+                margin-bottom: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .control-section {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+        }
+        
+        .control-section h3 {
+            margin: 0 0 15px 0;
+            color: #1f2937;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .control-section h3 {
+                font-size: 15px;
+                margin-bottom: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .control-section h3 {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+        }
+        
+        .shape-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 480px) {
+            .shape-buttons {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+        
+        .shape-btn {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 8px;
+            color: #1f2937;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            text-align: center;
+            font-weight: 500;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .shape-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+        
+        .shape-btn.active {
+            background: rgba(59, 130, 246, 0.8);
+            border-color: rgba(59, 130, 246, 1);
+            color: white;
+        }
+        
+        @media (max-width: 480px) {
+            .shape-btn {
+                font-size: 14px;
+                min-height: 48px;
+            }
+        }
+        
+        .slider-group {
+            margin-bottom: 15px;
+        }
+        
+        .slider-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(59, 130, 246, 0.2);
+            outline: none;
+            margin-bottom: 5px;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .measurement-display {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            line-height: 1.4;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .measurement-display .label {
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .measurement-display .value {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        
+        .toggle-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .toggle-section {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+        
+        .toggle-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 6px;
+            color: #1f2937;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 11px;
+            text-align: center;
+            font-weight: 500;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .toggle-btn.active {
+            background: rgba(59, 130, 246, 0.8);
+            border-color: rgba(59, 130, 246, 1);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .toggle-btn {
+                font-size: 12px;
+                min-height: 40px;
+                padding: 10px 12px;
+            }
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 300px;
+            color: #374151;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+        
+        @media (max-width: 1024px) {
+            #instructions {
+                display: none;
+            }
+        }
+        
+        .decompose-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .decompose-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container"></div>
+        <div id="controls-panel">
+            <div class="control-section">
+                <h3>🔷 Shape Selection</h3>
+                <div class="shape-buttons">
+                    <div class="shape-btn active" data-shape="cube">Cube</div>
+                    <div class="shape-btn" data-shape="sphere">Sphere</div>
+                    <div class="shape-btn" data-shape="pyramid">Pyramid</div>
+                    <div class="shape-btn" data-shape="cylinder">Cylinder</div>
+                    <div class="shape-btn" data-shape="cone">Cone</div>
+                    <div class="shape-btn" data-shape="torus">Torus</div>
+                </div>
+                <button class="decompose-btn" onclick="toggleDecompose()">🔍 Decompose Shape</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>📏 Dimensions</h3>
+                <div class="slider-group">
+                    <label>Size/Radius</label>
+                    <input type="range" class="slider" id="size-slider" min="0.5" max="3" step="0.1" value="1.5">
+                    <div class="value-display" id="size-value">1.5</div>
+                </div>
+                <div class="slider-group" id="height-group" style="display: none;">
+                    <label>Height</label>
+                    <input type="range" class="slider" id="height-slider" min="0.5" max="4" step="0.1" value="2">
+                    <div class="value-display" id="height-value">2.0</div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>📊 Measurements</h3>
+                <div class="measurement-display">
+                    <div class="label">Volume:</div>
+                    <div class="value" id="volume-display">3.375 units³</div>
+                </div>
+                <div class="measurement-display">
+                    <div class="label">Surface Area:</div>
+                    <div class="value" id="surface-area-display">13.5 units²</div>
+                </div>
+                <div class="measurement-display">
+                    <div class="label">Cross-Section Area:</div>
+                    <div class="value" id="cross-section-display">2.25 units²</div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>👁️ View Options</h3>
+                <div class="toggle-section">
+                    <div class="toggle-btn active" id="wireframe-btn" onclick="toggleWireframe()">Wireframe</div>
+                    <div class="toggle-btn" id="labels-btn" onclick="toggleLabels()">Labels</div>
+                    <div class="toggle-btn" id="cross-section-btn" onclick="toggleCrossSection()">Cross Section</div>
+                    <div class="toggle-btn" id="projection-btn" onclick="toggleProjection()">2D Projection</div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>🎨 Material</h3>
+                <div class="slider-group">
+                    <label>Transparency</label>
+                    <input type="range" class="slider" id="opacity-slider" min="0.1" max="1" step="0.1" value="0.8">
+                    <div class="value-display" id="opacity-value">0.8</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="instructions">
+        <strong>Controls:</strong><br>
+        • Click and drag to rotate<br>
+        • Scroll to zoom<br>
+        • Use sliders to modify dimensions<br>
+        • Toggle view options to explore properties
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, currentShape, controls;
+        let wireframeMode = true, showLabels = false, showCrossSection = false, showProjection = false;
+        let isDecomposed = false, decomposedParts = [];
+        let currentShapeType = 'cube';
+        let shapeSize = 1.5, shapeHeight = 2;
+        
+        // Initialize Three.js scene
+        function initScene() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf8fafc);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            const container = document.getElementById('canvas-container');
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 10);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            const pointLight = new THREE.PointLight(0x667eea, 0.5);
+            pointLight.position.set(-10, 10, -10);
+            scene.add(pointLight);
+            
+            // Create initial shape
+            createShape('cube');
+            
+            // Mouse controls (simplified orbit controls)
+            let isMouseDown = false;
+            let mouseX = 0, mouseY = 0;
+            
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isMouseDown = true;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            renderer.domElement.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+            
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (!isMouseDown) return;
+                
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+                
+                camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), deltaX * 0.01);
+                camera.position.applyAxisAngle(new THREE.Vector3(1, 0, 0), deltaY * 0.01);
+                camera.lookAt(0, 0, 0);
+                
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            renderer.domElement.addEventListener('wheel', (e) => {
+                const zoom = e.deltaY > 0 ? 1.1 : 0.9;
+                camera.position.multiplyScalar(zoom);
+                camera.lookAt(0, 0, 0);
+            });
+            
+            animate();
+        }
+        
+        function createShape(shapeType) {
+            // Clear existing shape
+            if (currentShape) {
+                scene.remove(currentShape);
+            }
+            decomposedParts.forEach(part => scene.remove(part));
+            decomposedParts = [];
+            isDecomposed = false;
+            
+            let geometry, material;
+            const opacity = parseFloat(document.getElementById('opacity-slider').value);
+            
+            material = new THREE.MeshLambertMaterial({
+                color: 0x3b82f6,
+                transparent: true,
+                opacity: opacity,
+                wireframe: wireframeMode
+            });
+            
+            switch(shapeType) {
+                case 'cube':
+                    geometry = new THREE.BoxGeometry(shapeSize, shapeSize, shapeSize);
+                    break;
+                case 'sphere':
+                    geometry = new THREE.SphereGeometry(shapeSize, 32, 32);
+                    break;
+                case 'pyramid':
+                    geometry = new THREE.ConeGeometry(shapeSize, shapeHeight, 4);
+                    break;
+                case 'cylinder':
+                    geometry = new THREE.CylinderGeometry(shapeSize, shapeSize, shapeHeight, 32);
+                    break;
+                case 'cone':
+                    geometry = new THREE.ConeGeometry(shapeSize, shapeHeight, 32);
+                    break;
+                case 'torus':
+                    geometry = new THREE.TorusGeometry(shapeSize, shapeSize * 0.3, 16, 100);
+                    break;
+            }
+            
+            currentShape = new THREE.Mesh(geometry, material);
+            currentShape.castShadow = true;
+            currentShape.receiveShadow = true;
+            scene.add(currentShape);
+            
+            currentShapeType = shapeType;
+            updateMeasurements();
+        }
+        
+        function updateMeasurements() {
+            let volume = 0, surfaceArea = 0, crossSectionArea = 0;
+            
+            switch(currentShapeType) {
+                case 'cube':
+                    volume = Math.pow(shapeSize, 3);
+                    surfaceArea = 6 * Math.pow(shapeSize, 2);
+                    crossSectionArea = Math.pow(shapeSize, 2);
+                    break;
+                case 'sphere':
+                    volume = (4/3) * Math.PI * Math.pow(shapeSize, 3);
+                    surfaceArea = 4 * Math.PI * Math.pow(shapeSize, 2);
+                    crossSectionArea = Math.PI * Math.pow(shapeSize, 2);
+                    break;
+                case 'pyramid':
+                    volume = (1/3) * Math.pow(shapeSize, 2) * shapeHeight;
+                    const slantHeight = Math.sqrt(Math.pow(shapeHeight, 2) + Math.pow(shapeSize, 2));
+                    surfaceArea = Math.pow(shapeSize, 2) + 2 * shapeSize * slantHeight;
+                    crossSectionArea = Math.pow(shapeSize, 2);
+                    break;
+                case 'cylinder':
+                    volume = Math.PI * Math.pow(shapeSize, 2) * shapeHeight;
+                    surfaceArea = 2 * Math.PI * shapeSize * (shapeSize + shapeHeight);
+                    crossSectionArea = Math.PI * Math.pow(shapeSize, 2);
+                    break;
+                case 'cone':
+                    volume = (1/3) * Math.PI * Math.pow(shapeSize, 2) * shapeHeight;
+                    const coneSlantHeight = Math.sqrt(Math.pow(shapeHeight, 2) + Math.pow(shapeSize, 2));
+                    surfaceArea = Math.PI * shapeSize * (shapeSize + coneSlantHeight);
+                    crossSectionArea = Math.PI * Math.pow(shapeSize, 2);
+                    break;
+                case 'torus':
+                    const minorRadius = shapeSize * 0.3;
+                    volume = 2 * Math.pow(Math.PI, 2) * Math.pow(minorRadius, 2) * shapeSize;
+                    surfaceArea = 4 * Math.pow(Math.PI, 2) * shapeSize * minorRadius;
+                    crossSectionArea = Math.PI * Math.pow(minorRadius, 2);
+                    break;
+            }
+            
+            document.getElementById('volume-display').textContent = volume.toFixed(3) + ' units³';
+            document.getElementById('surface-area-display').textContent = surfaceArea.toFixed(3) + ' units²';
+            document.getElementById('cross-section-display').textContent = crossSectionArea.toFixed(3) + ' units²';
+        }
+        
+        function toggleDecompose() {
+            if (isDecomposed) {
+                // Reassemble
+                decomposedParts.forEach(part => scene.remove(part));
+                decomposedParts = [];
+                scene.add(currentShape);
+                isDecomposed = false;
+                document.querySelector('.decompose-btn').textContent = '🔍 Decompose Shape';
+            } else {
+                // Decompose
+                scene.remove(currentShape);
+                
+                if (currentShapeType === 'cube') {
+                    // Split cube into 8 smaller cubes
+                    const smallSize = shapeSize / 2;
+                    const positions = [
+                        [-smallSize/2, -smallSize/2, -smallSize/2],
+                        [smallSize/2, -smallSize/2, -smallSize/2],
+                        [-smallSize/2, smallSize/2, -smallSize/2],
+                        [smallSize/2, smallSize/2, -smallSize/2],
+                        [-smallSize/2, -smallSize/2, smallSize/2],
+                        [smallSize/2, -smallSize/2, smallSize/2],
+                        [-smallSize/2, smallSize/2, smallSize/2],
+                        [smallSize/2, smallSize/2, smallSize/2]
+                    ];
+                    
+                    positions.forEach((pos, i) => {
+                        const geometry = new THREE.BoxGeometry(smallSize, smallSize, smallSize);
+                        const material = new THREE.MeshLambertMaterial({
+                            color: new THREE.Color().setHSL((i * 0.12) % 1, 0.7, 0.6),
+                            transparent: true,
+                            opacity: 0.8,
+                            wireframe: wireframeMode
+                        });
+                        const cube = new THREE.Mesh(geometry, material);
+                        cube.position.set(pos[0], pos[1], pos[2]);
+                        scene.add(cube);
+                        decomposedParts.push(cube);
+                    });
+                } else if (currentShapeType === 'cylinder') {
+                    // Split cylinder into circular slices
+                    const slices = 6;
+                    const sliceHeight = shapeHeight / slices;
+                    
+                    for (let i = 0; i < slices; i++) {
+                        const geometry = new THREE.CylinderGeometry(shapeSize, shapeSize, sliceHeight, 32);
+                        const material = new THREE.MeshLambertMaterial({
+                            color: new THREE.Color().setHSL((i / slices), 0.7, 0.6),
+                            transparent: true,
+                            opacity: 0.8,
+                            wireframe: wireframeMode
+                        });
+                        const slice = new THREE.Mesh(geometry, material);
+                        slice.position.y = (i - slices/2 + 0.5) * sliceHeight;
+                        scene.add(slice);
+                        decomposedParts.push(slice);
+                    }
+                }
+                
+                isDecomposed = true;
+                document.querySelector('.decompose-btn').textContent = '🔄 Reassemble Shape';
+            }
+        }
+        
+        function toggleWireframe() {
+            wireframeMode = !wireframeMode;
+            const btn = document.getElementById('wireframe-btn');
+            btn.classList.toggle('active');
+            
+            if (currentShape) {
+                currentShape.material.wireframe = wireframeMode;
+            }
+            decomposedParts.forEach(part => {
+                part.material.wireframe = wireframeMode;
+            });
+        }
+        
+        function toggleLabels() {
+            showLabels = !showLabels;
+            document.getElementById('labels-btn').classList.toggle('active');
+            // Label implementation would go here
+        }
+        
+        function toggleCrossSection() {
+            showCrossSection = !showCrossSection;
+            document.getElementById('cross-section-btn').classList.toggle('active');
+            
+            if (showCrossSection && currentShape) {
+                // Create a cutting plane visualization
+                const planeGeometry = new THREE.PlaneGeometry(shapeSize * 2, shapeSize * 2);
+                const planeMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff6b6b,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+                plane.position.y = 0;
+                scene.add(plane);
+                decomposedParts.push(plane);
+            } else {
+                // Remove cross-section plane
+                const planeIndex = decomposedParts.findIndex(part => 
+                    part.geometry instanceof THREE.PlaneGeometry);
+                if (planeIndex !== -1) {
+                    scene.remove(decomposedParts[planeIndex]);
+                    decomposedParts.splice(planeIndex, 1);
+                }
+            }
+        }
+        
+        function toggleProjection() {
+            showProjection = !showProjection;
+            document.getElementById('projection-btn').classList.toggle('active');
+            // 2D projection implementation would go here
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate shape slowly for better viewing
+            if (currentShape && !isDecomposed) {
+                currentShape.rotation.y += 0.005;
+            }
+            
+            // Animate decomposed parts
+            if (isDecomposed && decomposedParts.length > 0) {
+                decomposedParts.forEach((part, i) => {
+                    if (part.geometry instanceof THREE.BoxGeometry || 
+                        part.geometry instanceof THREE.CylinderGeometry) {
+                        part.rotation.y += 0.01;
+                        const time = Date.now() * 0.001;
+                        part.position.x += Math.sin(time + i) * 0.01;
+                        part.position.z += Math.cos(time + i) * 0.01;
+                    }
+                });
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            initScene();
+            
+            // Shape selection
+            document.querySelectorAll('.shape-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const shape = btn.dataset.shape;
+                    
+                    // Show/hide height slider based on shape
+                    const heightGroup = document.getElementById('height-group');
+                    if (['pyramid', 'cylinder', 'cone'].includes(shape)) {
+                        heightGroup.style.display = 'block';
+                    } else {
+                        heightGroup.style.display = 'none';
+                    }
+                    
+                    createShape(shape);
+                });
+            });
+            
+            // Size slider
+            document.getElementById('size-slider').addEventListener('input', (e) => {
+                shapeSize = parseFloat(e.target.value);
+                document.getElementById('size-value').textContent = shapeSize.toFixed(1);
+                createShape(currentShapeType);
+            });
+            
+            // Height slider
+            document.getElementById('height-slider').addEventListener('input', (e) => {
+                shapeHeight = parseFloat(e.target.value);
+                document.getElementById('height-value').textContent = shapeHeight.toFixed(1);
+                createShape(currentShapeType);
+            });
+            
+            // Opacity slider
+            document.getElementById('opacity-slider').addEventListener('input', (e) => {
+                const opacity = parseFloat(e.target.value);
+                document.getElementById('opacity-value').textContent = opacity.toFixed(1);
+                if (currentShape) {
+                    currentShape.material.opacity = opacity;
+                }
+                decomposedParts.forEach(part => {
+                    if (part.material.opacity !== undefined) {
+                        part.material.opacity = opacity;
+                    }
+                });
+            });
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+    </script>
+</body>
+</html>

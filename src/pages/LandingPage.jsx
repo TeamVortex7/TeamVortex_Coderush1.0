@@ -72,21 +72,30 @@ const Hero = () => {
     return () => ctx.revert();
   }, []);
 
-  return (
+   return (
     <section ref={heroRef} className="relative min-h-screen flex items-center justify-center text-center font-montserrat text-white">
       <div className="container mx-auto px-6 hero-content">
-        <h2 className="text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-white to-white-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-animation_10s_ease_infinite]">Immersive STEM Education</h2>
+        <h2 className="text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-animation_10s_ease_infinite]">
+          Immersive STEM Education
+        </h2>
         <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-10">
           Explore, experiment, and discover with interactive AR/VR-powered simulations.
         </p>
-        <a href="#catalog" className="px-8 py-3 bg-white text-blue-700 font-bold rounded-lg shadow-xl hover:scale-105 transform transition-transform duration-300">
-          Explore Simulations
-        </a>
+
+        {/* --- This is the updated button container --- */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#catalog" className="px-8 py-3 bg-white text-blue-700 font-bold rounded-lg shadow-xl hover:scale-105 transform transition-transform duration-300">
+            Explore Simulations
+          </a>
+          <a href="/login" className="px-8 py-3 bg-transparent text-white font-bold rounded-lg shadow-xl hover:scale-105 transform transition-transform duration-300 border-2 border-white">
+            Sign In
+          </a>
+        </div>
+        
       </div>
     </section>
   );
 };
-
 // --- Team Section ---
 const TeamSection = () => {
   const teamMembers = [
