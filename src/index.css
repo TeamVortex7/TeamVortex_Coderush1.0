@@ -7,3 +7,21 @@
 body {
   font-family: 'Montserrat', sans-serif;
 }
+
+@keyframes breathingGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-breathing {
+  background: linear-gradient(-45deg, #005AA7, #FFFDE4, #005AA7);
+  background-size: 400% 400%;
+  animation: breathingGradient 12s ease infinite;
+}
