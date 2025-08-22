@@ -2,8 +2,8 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="w-full py-6 bg-gray-800 text-white text-center">
-      &copy; 2025 TeamVortex. All rights reserved.
+    <footer className="bg-gray-900 text-white py-6 text-center">
+      <p>&copy; 2025 Team Vortex. All rights reserved.</p>
     </footer>
   );
 };
