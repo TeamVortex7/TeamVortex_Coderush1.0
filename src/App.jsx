@@ -15,23 +15,62 @@ import HistoryPage from './pages/HistoryPage';
 import PhysicsPage from './pages/PhysicsPage';
 
 function App() {
-  const [user] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
+
+  // A loading state is crucial while Firebase checks authentication.
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Main Routes */}
-        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/" />} />
+        {/* --- Public Routes --- */}
+        
+        {/* Rule 1: The Landing Page is always the homepage. */}
+        <Route path="/" element={<LandingPage />} />
 
-        {/* Add a specific route for each subject */}
-        <Route path="/biology" element={<BiologyPage />} />
-        <Route path="/chemistry" element={<ChemistryPage />} />
-        <Route path="/physics" element={<PhysicsPage />} />
-        <Route path="/maths" element={<MathsPage />} />
-        <Route path="/earthscience" element={<EarthSciencePage />} />
-        <Route path="/history" element={<HistoryPage />} />
+        {/* Rule 2: If a logged-in user tries to visit the login page, send them to the dashboard. */}
+        <Route 
+          path="/login" 
+          element={user ? <Navigate to="/dashboard" /> : <LoginPage />} 
+        />
+
+        {/* --- Protected Routes (These require a user to be logged in) --- */}
+        
+        {/* Rule 3: If a non-user tries to access a protected page, send them to login. */}
+        <Route 
+          path="/dashboard" 
+          element={user ? <DashboardPage /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/biology" 
+          element={user ? <BiologyPage /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/chemistry" 
+          element={user ? <ChemistryPage /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/physics" 
+          element={user ? <PhysicsPage /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/maths" 
+          element={user ? <MathsPage /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/earthscience" 
+          element={user ? <EarthSciencePage /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/history" 
+          element={user ? <HistoryPage /> : <Navigate to="/login" />} 
+        />
       </Routes>
     </BrowserRouter>
   );

@@ -10,10 +10,14 @@ const LoginPage = () => {
   const signInWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate("/landing");
+      navigate("/dashboard"); // Changed to dashboard for more professional feel
     } catch (error) {
       console.error("Error signing in with Google: ", error);
     }
+  };
+
+  const goToLanding = () => {
+    navigate("/");
   };
 
   // Google Logo SVG Component
@@ -43,68 +47,90 @@ const LoginPage = () => {
     </svg>
   );
 
+  // Back Arrow Icon
+  const BackArrowIcon = () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="mr-2"
+    >
+      <path d="m12 19-7-7 7-7"/>
+      <path d="M19 12H5"/>
+    </svg>
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/30 to-cyan-400/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-r from-indigo-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-indigo-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-r from-slate-400/15 to-blue-400/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+      </div>
+
+      {/* Back to Landing Button - Top Left */}
+      <div className="absolute top-6 left-6 z-20">
+        <button
+          onClick={goToLanding}
+          className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white/80 hover:text-white font-medium py-2.5 px-4 border border-white/20 hover:border-white/30 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center group hover:scale-105 active:scale-95"
+        >
+          <BackArrowIcon />
+          <span className="text-sm">Back to Home</span>
+        </button>
       </div>
 
       {/* Main login container */}
       <div className="relative w-full max-w-md z-10">
         {/* Enhanced Glass morphism card */}
-        <div className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 p-8 relative overflow-hidden">
+        <div className="bg-white/10 backdrop-blur-2xl rounded-2xl shadow-xl border border-white/20 p-6 relative overflow-hidden">
           {/* Inner glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent rounded-3xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent rounded-2xl"></div>
           <div className="relative z-10">
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg border border-white/30">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg border border-white/25">
                 <svg
-                  className="w-8 h-8 text-white"
+                  className="w-7 h-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  strokeWidth="2"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                   />
                 </svg>
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Welcome Back</h1>
-              <p className="text-white/80 drop-shadow">Please sign in to your account</p>
+              <h1 className="text-2xl font-semibold text-white mb-1 drop-shadow">Sign In</h1>
+              <p className="text-white/70 text-sm">Welcome back</p>
             </div>
 
             {/* Google Sign In Button */}
             <button
               onClick={signInWithGoogle}
-              className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-4 px-6 border border-white/30 hover:border-white/40 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 border border-gray-200 hover:border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center group hover:scale-[1.01] active:scale-[0.99] mb-6"
             >
               <GoogleLogo />
-              <span className="text-base">Continue with Google</span>
+              <span className="text-sm">Continue with Google</span>
             </button>
 
-            {/* Divider */}
-            <div className="flex items-center my-6">
-              <div className="flex-1 border-t border-white/30"></div>
-              <span className="px-4 text-sm text-white/70 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">or</span>
-              <div className="flex-1 border-t border-white/30"></div>
-            </div>
-
-            {/* Additional info */}
-            <div className="text-center">
-              <p className="text-sm text-white/70">
+            {/* Legal Links */}
+            <div className="text-center mt-6">
+              <p className="text-xs text-white/60">
                 By continuing, you agree to our{" "}
-                <a href="#" className="text-white hover:text-white/80 underline underline-offset-2">
-                  Terms of Service
+                <a href="#" className="text-white/80 hover:text-white underline underline-offset-2 transition-colors">
+                  Terms
                 </a>{" "}
                 and{" "}
-                <a href="#" className="text-white hover:text-white/80 underline underline-offset-2">
+                <a href="#" className="text-white/80 hover:text-white underline underline-offset-2 transition-colors">
                   Privacy Policy
                 </a>
               </p>
@@ -113,9 +139,9 @@ const LoginPage = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-sm text-white/60 drop-shadow">
-            Secure authentication powered by Firebase
+        <div className="text-center mt-4">
+          <p className="text-xs text-white/50">
+            Secured by Firebase Auth
           </p>
         </div>
       </div>

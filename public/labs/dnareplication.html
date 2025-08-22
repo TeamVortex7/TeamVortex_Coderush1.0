@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Replication Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .simulation-area {
+            flex: 3;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: #f8f9fa;
+        }
+
+        #simulationCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .control-panel {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            height: fit-content;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+        }
+
+        .control-section h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .control-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .control-btn.secondary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .control-btn.secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        .control-btn.danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .control-btn.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .control-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #dee2e6;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .info-panel h4 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.running {
+            background: #28a745;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-indicator.paused {
+            background: #ffc107;
+        }
+
+        .status-indicator.stopped {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .enzyme-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .enzyme-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: #e9ecef;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .enzyme-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🧬 DNA Replication Simulation</h1>
+        <p>Interactive visualization of DNA replication process with enzymatic activities</p>
+    </header>
+
+    <div class="main-container">
+        <div class="simulation-area">
+            <div class="canvas-container">
+                <canvas id="simulationCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="control-section">
+                <h3>🎮 Simulation Controls</h3>
+                <button class="control-btn primary" id="startBtn">Start Replication</button>
+                <button class="control-btn secondary" id="pauseBtn" disabled>Pause</button>
+                <button class="control-btn secondary" id="resumeBtn" disabled>Resume</button>
+                <button class="control-btn danger" id="resetBtn">Reset</button>
+                
+                <div class="slider-container">
+                    <label>Animation Speed: <span id="speedValue">50</span>%</label>
+                    <input type="range" class="slider" id="speedSlider" min="10" max="100" value="50">
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>🔬 Enzyme Controls</h3>
+                <button class="control-btn secondary" id="toggleHelicase">Toggle Helicase</button>
+                <button class="control-btn secondary" id="togglePrimase">Toggle Primase</button>
+                <button class="control-btn secondary" id="togglePolymerase">Toggle DNA Polymerase</button>
+                <button class="control-btn secondary" id="toggleLigase">Toggle DNA Ligase</button>
+                
+                <div class="enzyme-legend">
+                    <div class="enzyme-item">
+                        <div class="enzyme-color" style="background: #ff6b6b;"></div>
+                        <span>Helicase</span>
+                    </div>
+                    <div class="enzyme-item">
+                        <div class="enzyme-color" style="background: #4ecdc4;"></div>
+                        <span>Primase</span>
+                    </div>
+                    <div class="enzyme-item">
+                        <div class="enzyme-color" style="background: #45b7d1;"></div>
+                        <span>DNA Polymerase</span>
+                    </div>
+                    <div class="enzyme-item">
+                        <div class="enzyme-color" style="background: #f9ca24;"></div>
+                        <span>DNA Ligase</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>📊 Progress & Stats</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="basePairs">0</div>
+                        <div class="stat-label">Base Pairs</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="fragments">0</div>
+                        <div class="stat-label">Okazaki Fragments</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="enzymes">4</div>
+                        <div class="stat-label">Active Enzymes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="completion">0%</div>
+                        <div class="stat-label">Completion</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <h4>
+                    <span class="status-indicator stopped" id="statusIndicator"></span>
+                    Status: <span id="statusText">Ready to start</span>
+                </h4>
+                <p id="infoText">Click "Start Replication" to begin the DNA replication simulation. Watch as enzymes work together to unwind and replicate the DNA double helix.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DNAReplicationSimulation {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = this.canvas.offsetWidth;
+                this.canvas.height = this.canvas.offsetHeight;
+                
+                // Simulation state
+                this.isRunning = false;
+                this.isPaused = false;
+                this.animationSpeed = 50;
+                this.progress = 0;
+                this.maxProgress = 100;
+                
+                // DNA properties
+                this.dnaLength = 600;
+                this.dnaStart = 50;
+                this.strand1Y = 200;
+                this.strand2Y = 250;
+                this.basePairSpacing = 6;
+                
+                // Enzyme states
+                this.enzymes = {
+                    helicase: { active: true, position: 0, color: '#ff6b6b' },
+                    primase: { active: true, position: 0, color: '#4ecdc4' },
+                    polymerase: { active: true, position: 0, color: '#45b7d1' },
+                    ligase: { active: true, position: 0, color: '#f9ca24' }
+                };
+                
+                // Animation properties
+                this.replicationFork = 0;
+                this.basePairs = [];
+                this.okazakiFragments = [];
+                this.primers = [];
+                this.animationFrame = null;
+                
+                // Statistics
+                this.stats = {
+                    basePairs: 0,
+                    fragments: 0,
+                    activeEnzymes: 4,
+                    completion: 0
+                };
+                
+                this.initializeBasePairs();
+                this.setupEventListeners();
+                this.draw();
+            }
+            
+            initializeBasePairs() {
+                const bases = ['A', 'T', 'G', 'C'];
+                const complements = { 'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G' };
+                
+                for (let i = 0; i < this.dnaLength / this.basePairSpacing; i++) {
+                    const base1 = bases[Math.floor(Math.random() * bases.length)];
+                    const base2 = complements[base1];
+                    
+                    this.basePairs.push({
+                        x: this.dnaStart + (i * this.basePairSpacing),
+                        base1: base1,
+                        base2: base2,
+                        unwound: false,
+                        replicated: false
+                    });
+                }
+            }
+            
+            setupEventListeners() {
+                // Control buttons
+                document.getElementById('startBtn').addEventListener('click', () => this.start());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
+                document.getElementById('resumeBtn').addEventListener('click', () => this.resume());
+                document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+                
+                // Speed slider
+                const speedSlider = document.getElementById('speedSlider');
+                speedSlider.addEventListener('input', (e) => {
+                    this.animationSpeed = parseInt(e.target.value);
+                    document.getElementById('speedValue').textContent = this.animationSpeed;
+                });
+                
+                // Enzyme toggles
+                document.getElementById('toggleHelicase').addEventListener('click', () => this.toggleEnzyme('helicase'));
+                document.getElementById('togglePrimase').addEventListener('click', () => this.toggleEnzyme('primase'));
+                document.getElementById('togglePolymerase').addEventListener('click', () => this.toggleEnzyme('polymerase'));
+                document.getElementById('toggleLigase').addEventListener('click', () => this.toggleEnzyme('ligase'));
+                
+                // Resize handler
+                window.addEventListener('resize', () => {
+                    this.canvas.width = this.canvas.offsetWidth;
+                    this.canvas.height = this.canvas.offsetHeight;
+                    this.draw();
+                });
+            }
+            
+            start() {
+                this.isRunning = true;
+                this.isPaused = false;
+                this.updateStatus('running', 'Replication in progress...');
+                this.updateButtons();
+                this.animate();
+            }
+            
+            pause() {
+                this.isPaused = true;
+                this.updateStatus('paused', 'Replication paused');
+                this.updateButtons();
+            }
+            
+            resume() {
+                this.isPaused = false;
+                this.updateStatus('running', 'Replication resumed');
+                this.updateButtons();
+                this.animate();
+            }
+            
+            reset() {
+                this.isRunning = false;
+                this.isPaused = false;
+                this.progress = 0;
+                this.replicationFork = 0;
+                this.okazakiFragments = [];
+                this.primers = [];
+                this.stats.basePairs = 0;
+                this.stats.fragments = 0;
+                this.stats.completion = 0;
+                
+                // Reset all enzymes to starting position
+                Object.keys(this.enzymes).forEach(enzyme => {
+                    this.enzymes[enzyme].position = 0;
+                    this.enzymes[enzyme].active = true;
+                });
+                
+                // Reset base pairs
+                this.basePairs.forEach(bp => {
+                    bp.unwound = false;
+                    bp.replicated = false;
+                });
+                
+                this.updateStatus('stopped', 'Ready to start');
+                this.updateButtons();
+                this.updateStats();
+                this.draw();
+                
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                }
+            }
+            
+            toggleEnzyme(enzymeName) {
+                this.enzymes[enzymeName].active = !this.enzymes[enzymeName].active;
+                this.stats.activeEnzymes = Object.values(this.enzymes).filter(e => e.active).length;
+                this.updateStats();
+                
+                const button = document.getElementById(`toggle${enzymeName.charAt(0).toUpperCase() + enzymeName.slice(1)}`);
+                button.style.opacity = this.enzymes[enzymeName].active ? '1' : '0.5';
+            }
+            
+            animate() {
+                if (!this.isRunning || this.isPaused) return;
+                
+                // Update replication progress
+                const speedMultiplier = this.animationSpeed / 50;
+                this.replicationFork += 0.5 * speedMultiplier;
+                
+                // Update enzyme positions
+                if (this.enzymes.helicase.active) {
+                    this.enzymes.helicase.position = Math.min(this.replicationFork, this.dnaLength);
+                }
+                
+                if (this.enzymes.primase.active) {
+                    this.enzymes.primase.position = Math.min(this.replicationFork * 0.9, this.dnaLength);
+                }
+                
+                if (this.enzymes.polymerase.active) {
+                    this.enzymes.polymerase.position = Math.min(this.replicationFork * 0.8, this.dnaLength);
+                }
+                
+                if (this.enzymes.ligase.active) {
+                    this.enzymes.ligase.position = Math.min(this.replicationFork * 0.7, this.dnaLength);
+                }
+                
+                // Update base pair states
+                this.basePairs.forEach((bp, index) => {
+                    const distanceFromStart = bp.x - this.dnaStart;
+                    if (distanceFromStart < this.enzymes.helicase.position && !bp.unwound) {
+                        bp.unwound = true;
+                        this.stats.basePairs++;
+                    }
+                    if (distanceFromStart < this.enzymes.polymerase.position && !bp.replicated) {
+                        bp.replicated = true;
+                    }
+                });
+                
+                // Generate Okazaki fragments
+                if (this.enzymes.primase.active && Math.random() < 0.02 * speedMultiplier) {
+                    this.okazakiFragments.push({
+                        x: this.dnaStart + this.enzymes.primase.position - Math.random() * 100,
+                        length: 20 + Math.random() * 30,
+                        complete: false
+                    });
+                    this.stats.fragments++;
+                }
+                
+                // Update progress
+                this.progress = (this.replicationFork / this.dnaLength) * 100;
+                this.stats.completion = Math.round(this.progress);
+                
+                // Check completion
+                if (this.progress >= 100) {
+                    this.isRunning = false;
+                    this.updateStatus('stopped', 'Replication complete!');
+                    this.updateButtons();
+                }
+                
+                this.updateStats();
+                this.draw();
+                
+                if (this.isRunning && !this.isPaused) {
+                    this.animationFrame = requestAnimationFrame(() => this.animate());
+                }
+            }
+            
+            draw() {
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw background
+                this.ctx.fillStyle = '#f8f9fa';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw DNA strands
+                this.drawDNAStrands();
+                
+                // Draw enzymes
+                this.drawEnzymes();
+                
+                // Draw replication fork
+                this.drawReplicationFork();
+                
+                // Draw Okazaki fragments
+                this.drawOkazakiFragments();
+                
+                // Draw progress indicator
+                this.drawProgressIndicator();
+            }
+            
+            drawDNAStrands() {
+                this.ctx.lineWidth = 4;
+                
+                // Draw original strands
+                this.ctx.strokeStyle = '#495057';
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.dnaStart, this.strand1Y);
+                this.ctx.lineTo(this.dnaStart + this.dnaLength, this.strand1Y);
+                this.ctx.stroke();
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.dnaStart, this.strand2Y);
+                this.ctx.lineTo(this.dnaStart + this.dnaLength, this.strand2Y);
+                this.ctx.stroke();
+                
+                // Draw base pairs
+                this.basePairs.forEach(bp => {
+                    if (bp.unwound) {
+                        // Draw separated strands at replication fork
+                        const forkDistance = Math.max(0, (bp.x - this.dnaStart) - this.replicationFork + 50);
+                        const separation = Math.min(30, Math.max(0, 30 - forkDistance * 0.6));
+                        
+                        this.ctx.strokeStyle = '#dee2e6';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(bp.x, this.strand1Y - separation);
+                        this.ctx.lineTo(bp.x, this.strand2Y + separation);
+                        this.ctx.stroke();
+                        
+                        // Draw base labels
+                        this.ctx.fillStyle = '#495057';
+                        this.ctx.font = '12px Arial';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText(bp.base1, bp.x, this.strand1Y - separation - 5);
+                        this.ctx.fillText(bp.base2, bp.x, this.strand2Y + separation + 15);
+                        
+                        // Draw new strands if replicated
+                        if (bp.replicated) {
+                            this.ctx.strokeStyle = '#28a745';
+                            this.ctx.lineWidth = 3;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(bp.x, this.strand1Y - separation - 30);
+                            this.ctx.lineTo(bp.x + this.basePairSpacing, this.strand1Y - separation - 30);
+                            this.ctx.stroke();
+                            
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(bp.x, this.strand2Y + separation + 30);
+                            this.ctx.lineTo(bp.x + this.basePairSpacing, this.strand2Y + separation + 30);
+                            this.ctx.stroke();
+                        }
+                    } else {
+                        // Draw normal base pair connections
+                        this.ctx.strokeStyle = '#adb5bd';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(bp.x, this.strand1Y);
+                        this.ctx.lineTo(bp.x, this.strand2Y);
+                        this.ctx.stroke();
+                    }
+                });
+            }
+            
+            drawEnzymes() {
+                Object.entries(this.enzymes).forEach(([name, enzyme]) => {
+                    if (!enzyme.active) return;
+                    
+                    const x = this.dnaStart + enzyme.position;
+                    const y = this.strand1Y + 25;
+                    
+                    // Draw enzyme as circle
+                    this.ctx.fillStyle = enzyme.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, 12, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Draw enzyme label
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = 'bold 10px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(name.charAt(0).toUpperCase(), x, y + 3);
+                    
+                    // Draw enzyme name below
+                    this.ctx.fillStyle = '#495057';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.fillText(name, x, y + 25);
+                });
+            }
+            
+            drawReplicationFork() {
+                const forkX = this.dnaStart + this.replicationFork;
+                
+                // Draw fork shape
+                this.ctx.strokeStyle = '#dc3545';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.moveTo(forkX, this.strand1Y - 30);
+                this.ctx.lineTo(forkX, this.strand1Y);
+                this.ctx.lineTo(forkX + 20, this.strand1Y - 15);
+                this.ctx.moveTo(forkX, this.strand2Y);
+                this.ctx.lineTo(forkX + 20, this.strand2Y + 15);
+                this.ctx.lineTo(forkX, this.strand2Y + 30);
+                this.ctx.stroke();
+            }
+            
+            drawOkazakiFragments() {
+                this.ctx.strokeStyle = '#ffc107';
+                this.ctx.lineWidth = 4;
+                
+                this.okazakiFragments.forEach(fragment => {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(fragment.x, this.strand2Y + 35);
+                    this.ctx.lineTo(fragment.x + fragment.length, this.strand2Y + 35);
+                    this.ctx.stroke();
+                });
+            }
+            
+            drawProgressIndicator() {
+                const progressX = this.dnaStart + (this.progress / 100) * this.dnaLength;
+                
+                // Draw progress line
+                this.ctx.strokeStyle = '#007bff';
+                this.ctx.lineWidth = 2;
+                this.ctx.setLineDash([5, 5]);
+                this.ctx.beginPath();
+                this.ctx.moveTo(progressX, 50);
+                this.ctx.lineTo(progressX, this.canvas.height - 50);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+                
+                // Draw progress percentage
+                this.ctx.fillStyle = '#007bff';
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(`${Math.round(this.progress)}%`, progressX, 40);
+            }
+            
+            updateStatus(status, text) {
+                const indicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                const infoText = document.getElementById('infoText');
+                
+                indicator.className = `status-indicator ${status}`;
+                statusText.textContent = text;
+                
+                if (status === 'running') {
+                    infoText.textContent = 'DNA replication is actively occurring. Enzymes are working to unwind and replicate the DNA strands.';
+                } else if (status === 'paused') {
+                    infoText.textContent = 'Replication has been paused. Click Resume to continue the process.';
+                } else if (status === 'stopped' && text.includes('complete')) {
+                    infoText.textContent = 'DNA replication has been completed successfully! The double helix has been fully replicated.';
+                } else {
+                    infoText.textContent = 'Click "Start Replication" to begin the DNA replication simulation.';
+                }
+            }
+            
+            updateButtons() {
+                const startBtn = document.getElementById('startBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
+                const resumeBtn = document.getElementById('resumeBtn');
+                
+                if (this.isRunning && !this.isPaused) {
+                    startBtn.disabled = true;
+                    pauseBtn.disabled = false;
+                    resumeBtn.disabled = true;
+                } else if (this.isPaused) {
+                    startBtn.disabled = true;
+                    pauseBtn.disabled = true;
+                    resumeBtn.disabled = false;
+                } else {
+                    startBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                    resumeBtn.disabled = true;
+                }
+            }
+            
+            updateStats() {
+                document.getElementById('basePairs').textContent = this.stats.basePairs;
+                document.getElementById('fragments').textContent = this.stats.fragments;
+                document.getElementById('enzymes').textContent = this.stats.activeEnzymes;
+                document.getElementById('completion').textContent = this.stats.completion + '%';
+                
+                // Update progress bar
+                const progressFill = document.getElementById('progressFill');
+                progressFill.style.width = this.stats.completion + '%';
+            }
+        }
+        
+        // Initialize simulation when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.simulation = new DNAReplicationSimulation('simulationCanvas');
+        });
+    </script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+</body>
+</html>

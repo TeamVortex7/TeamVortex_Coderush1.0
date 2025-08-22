@@ -1,8 +1,9 @@
 import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { auth } from "../firebaseConfig";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signOut } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
 
 // --- SVG Icon Components ---
 const BookIcon = () => (
@@ -123,29 +124,42 @@ const CircularProgress = ({ percentage, size = 160, strokeWidth = 10 }) => {
   );
 };
 
-// --- NEW Footer Component ---
 const Footer = () => (
-  <footer className="bg-gray-900 text-gray-400 font-montserrat mt-auto">
+  <footer className="bg-gray-900 text-gray-400 font-montserrat">
     <div className="container mx-auto px-6 py-12">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* Company Info */}
         <div className="col-span-1 md:col-span-2">
           <h2 className="text-2xl font-bold text-white mb-2">Team<span className="text-blue-500">Vortex</span></h2>
           <p className="pr-8">Our mission is to make education an adventure. We use immersive technology to ignite curiosity and empower students to explore, create, and build the future.</p>
         </div>
+       
+        {/* Quick Links */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
           <ul className="space-y-2">
-            <li><a href="/dashboard" className="hover:text-white transition-colors">Dashboard</a></li>
-            <li><a href="/#catalog" className="hover:text-white transition-colors">Catalog</a></li>
-            <li><a href="/#about" className="hover:text-white transition-colors">About Us</a></li>
+            <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
+            <li><a href="#catalog" className="hover:text-white transition-colors">Catalog</a></li>
+            <li><a href="#join" className="hover:text-white transition-colors">Join Us</a></li>
           </ul>
         </div>
+
+        {/* Contact & GitHub */}
         <div>
-          <h3 className="text-lg font-semibold text-white mb-4">Follow Us</h3>
-          <div className="flex space-x-4">
-            <a href="#" className="hover:text-blue-400"><TwitterIcon /></a>
-            <a href="#" className="hover:text-blue-600"><LinkedinIcon /></a>
-            <a href="#" className="hover:text-white"><GithubIcon /></a>
+          <h3 className="text-lg font-semibold text-white mb-4">Connect With Us</h3>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3">
+              <a href="#" className="hover:text-white transition-colors">
+                <GithubIcon />
+              </a>
+              <a href="https://github.com/TeamVortex7/" className="hover:text-white transition-colors text-sm">GitHub Repository</a>
+            </div>
+            <div className="flex items-center space-x-3">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+              </svg>
+              <a href="mailto:vortex.official77@gmail.com" className="hover:text-white transition-colors text-sm">vortex.official77@gmail.com</a>
+            </div>
           </div>
         </div>
       </div>
@@ -219,8 +233,8 @@ export default function DashboardPage() {
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             <div className="flex-grow">
               <div data-animate="welcome" className={`transform transition-all duration-1000 ${isVisible.welcome ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">
-                  {greeting}, {user ? user.displayName.split(" ")[0] : "User"}! 🚀
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2 pb-1">
+                  {greeting}, {user ? user.displayName.split(" ")[0] : "User"}! <span className="text-gray-800">🚀</span>
                 </h1>
                 <p className="text-gray-600 text-base sm:text-lg">Let's continue your learning journey. Pick a lab to get started.</p>
               </div>

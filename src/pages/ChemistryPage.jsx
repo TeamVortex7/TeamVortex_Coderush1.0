@@ -7,21 +7,21 @@ export default function ChemistryPage() {
     const chemistryLabs = [
         { 
             id: 1, 
-            title: "Chemical Reaction", 
-            description: "Step into the lab to create and witness spectacular chemical changes. From synthesis to combustion, trigger reactions and discover the principles behind them.",
-            url: "/labs/chemicalreaction.html" 
+            title: "Air Pressure", 
+            description: "Manipulate the temperature and altitude in a virtual environment to see how air molecules behave, and discover how these changes create high and low-pressure systems.",
+            url: "/labs/airpressure.html" 
         },
         { 
             id: 2, 
-            title: "Chemical Bonding", 
-            description: "Explore ionic, covalent, and metallic bonds in an interactive 3D environment.",
-            url: "/labs/chemistry-bonding.html" 
+            title: "States of Water", 
+            description: "Add or remove heat from H₂O molecules and watch them transform in real-time between a rigid solid, a flowing liquid, and a high-energy gas.",
+            url: "/labs/stateofwater.html" 
         },
         { 
             id: 3, 
-            title: "Periodic Table Explorer", 
-            description: "An in-depth look at the properties and trends of the elements.",
-            url: "/labs/chemistry-periodic-table.html" 
+            title: "Chemical Reaction", 
+            description: "Step into the lab to create and witness spectacular chemical changes. From synthesis to combustion, trigger reactions and discover the principles behind them.",
+            url: "/labs/chemicalreaction.html" 
         },
     ];
 

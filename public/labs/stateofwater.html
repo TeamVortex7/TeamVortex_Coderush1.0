@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Water States Model</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #005AA7;
+            --secondary-color: #42A5F5;
+            --background-color: #F0F4F8;
+            --container-bg-color: #FFFFFF;
+            --text-color: #2C3E50;
+            --secondary-text-color: #7F8C8D;
+            --border-color: #E0E0E0;
+            --solid-color: #B3E5FC;
+            --solid-text-color: #01579B;
+            --liquid-color: #42A5F5;
+            --liquid-text-color: #FFFFFF;
+            --gas-color: #FFB74D;
+            --gas-text-color: #E65100;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #005AA7 0%, #FFFDE4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--container-bg-color);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: clamp(1.8em, 5vw, 2.5em);
+            font-weight: 700;
+        }
+
+        .header p {
+            color: var(--secondary-text-color);
+            font-size: clamp(0.9em, 2vw, 1.1em);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .simulation-area, .controls {
+            background: var(--background-color);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .simulation-area h3, .controls h3 {
+            color: var(--text-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .molecule-container {
+            width: 100%;
+            height: 400px;
+            border: 3px solid var(--primary-color);
+            border-radius: 10px;
+            position: relative;
+            background: #e3f2fd;
+            overflow: hidden;
+        }
+
+        .molecule {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .molecule.solid {
+            background: var(--solid-color);
+            box-shadow: 0 0 8px rgba(179, 229, 252, 0.6);
+        }
+
+        .molecule.liquid {
+            background: var(--liquid-color);
+            box-shadow: 0 2px 4px rgba(66, 165, 245, 0.4);
+        }
+
+        .molecule.gas {
+            background: var(--gas-color);
+            box-shadow: 0 0 12px rgba(255, 183, 77, 0.6);
+        }
+
+        .temperature-control {
+            margin-bottom: 25px;
+        }
+
+        .temp-slider-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .temp-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #2196F3 0%, #4CAF50 50%, #FF5722 100%);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .temp-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            border: 2px solid white;
+        }
+
+        .temp-slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: none;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .temp-display {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 15px 0;
+        }
+
+        .temp-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: var(--secondary-text-color);
+            margin-top: 10px;
+        }
+
+        .state-display {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 1.3em;
+            transition: all 0.3s ease;
+        }
+
+        .state-solid {
+            background: var(--solid-color);
+            color: var(--solid-text-color);
+        }
+
+        .state-liquid {
+            background: var(--liquid-color);
+            color: var(--liquid-text-color);
+        }
+
+        .state-gas {
+            background: var(--gas-color);
+            color: var(--gas-text-color);
+        }
+
+        .info-panel {
+            grid-column: 1 / -1;
+            background: var(--container-bg-color);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .info-content h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .info-content p {
+            color: var(--text-color);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .property-card {
+            background: var(--background-color);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .property-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .property-card p {
+            color: var(--secondary-text-color);
+            font-size: 0.9em;
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Interactive Water States Model</h1>
+            <p>Explore how temperature affects the molecular behavior of water</p>
+        </div>
+
+        <div class="main-content">
+            <div class="simulation-area">
+                <h3>Molecular Simulation</h3>
+                <div class="molecule-container" id="moleculeContainer">
+                    </div>
+            </div>
+
+            <div class="controls">
+                <div class="temperature-control">
+                    <h3>🌡️ Temperature Control</h3>
+                    <div class="temp-slider-container">
+                        <input type="range" min="-50" max="150" value="25" class="temp-slider" id="tempSlider">
+                        <div class="temp-labels">
+                            <span>-50°C</span>
+                            <span>50°C</span>
+                            <span>150°C</span>
+                        </div>
+                    </div>
+                    <div class="temp-display" id="tempDisplay">25°C</div>
+                </div>
+
+                <div class="state-display" id="stateDisplay">
+                    💧 Liquid Water
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-content" id="infoContent">
+                <h3>💧 Current State: Liquid Water</h3>
+                <p>At room temperature (around 25°C), water exists as a liquid. The molecules have moderate kinetic energy, allowing them to move freely while maintaining some cohesion.</p>
+                
+                <div class="properties-grid">
+                    <div class="property-card">
+                        <h4>Molecular Movement</h4>
+                        <p>Molecules slide past each other freely, creating fluid motion</p>
+                    </div>
+                    <div class="property-card">
+                        <h4>Volume</h4>
+                        <p>Takes the shape of container, nearly incompressible</p>
+                    </div>
+                    <div class="property-card">
+                        <h4>Temperature Range</h4>
+                        <p>0°C to 100°C at standard atmospheric pressure</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class WaterMolecule {
+            constructor(x, y, container) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.element = document.createElement('div');
+                this.element.className = 'molecule';
+                this.element.style.left = x + 'px';
+                this.element.style.top = y + 'px';
+                container.appendChild(this.element);
+                this.container = container;
+            }
+
+            update(state, temperature) {
+                this.updateVelocity(state, temperature);
+                this.updatePosition();
+                this.handleBoundaries();
+                this.updateVisuals(state);
+            }
+
+            updateVelocity(state, temperature) {
+                const energyFactor = (temperature + 50) / 200; // Normalize to 0-1 range
+                
+                switch(state) {
+                    case 'solid':
+                        // Minimal movement, slight vibration
+                        this.vx += (Math.random() - 0.5) * 0.5 * energyFactor;
+                        this.vy += (Math.random() - 0.5) * 0.5 * energyFactor;
+                        this.vx *= 0.8; // High damping
+                        this.vy *= 0.8;
+                        break;
+                    
+                    case 'liquid':
+                        // Moderate movement
+                        this.vx += (Math.random() - 0.5) * 1.5 * energyFactor;
+                        this.vy += (Math.random() - 0.5) * 1.5 * energyFactor;
+                        this.vx *= 0.95; // Some damping
+                        this.vy *= 0.95;
+                        break;
+                    
+                    case 'gas':
+                        // High movement
+                        this.vx += (Math.random() - 0.5) * 3 * energyFactor;
+                        this.vy += (Math.random() - 0.5) * 3 * energyFactor;
+                        this.vx *= 0.98; // Low damping
+                        this.vy *= 0.98;
+                        break;
+                }
+
+                // Limit maximum velocity
+                const maxVel = state === 'solid' ? 1 : state === 'liquid' ? 3 : 6;
+                this.vx = Math.max(-maxVel, Math.min(maxVel, this.vx));
+                this.vy = Math.max(-maxVel, Math.min(maxVel, this.vy));
+            }
+
+            updatePosition() {
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            handleBoundaries() {
+                const containerWidth = this.container.clientWidth;
+                const containerHeight = this.container.clientHeight;
+                const moleculeSize = 12;
+
+                if (this.x <= 0 || this.x >= containerWidth - moleculeSize) {
+                    this.vx *= -0.8;
+                    this.x = Math.max(0, Math.min(containerWidth - moleculeSize, this.x));
+                }
+
+                if (this.y <= 0 || this.y >= containerHeight - moleculeSize) {
+                    this.vy *= -0.8;
+                    this.y = Math.max(0, Math.min(containerHeight - moleculeSize, this.y));
+                }
+            }
+
+            updateVisuals(state) {
+                this.element.style.left = this.x + 'px';
+                this.element.style.top = this.y + 'px';
+                this.element.className = `molecule ${state}`;
+            }
+        }
+
+        class WaterStatesModel {
+            constructor() {
+                this.molecules = [];
+                this.temperature = 25;
+                this.currentState = 'liquid';
+                this.container = document.getElementById('moleculeContainer');
+                this.tempSlider = document.getElementById('tempSlider');
+                this.tempDisplay = document.getElementById('tempDisplay');
+                this.stateDisplay = document.getElementById('stateDisplay');
+                this.infoContent = document.getElementById('infoContent');
+                
+                this.initMolecules();
+                this.setupEventListeners();
+                this.startAnimation();
+                this.updateStateInfo();
+            }
+
+            initMolecules() {
+                const numMolecules = 50;
+                const containerWidth = this.container.clientWidth;
+                const containerHeight = this.container.clientHeight;
+
+                for (let i = 0; i < numMolecules; i++) {
+                    const x = Math.random() * (containerWidth - 12);
+                    const y = Math.random() * (containerHeight - 12);
+                    const molecule = new WaterMolecule(x, y, this.container);
+                    this.molecules.push(molecule);
+                }
+            }
+
+            setupEventListeners() {
+                this.tempSlider.addEventListener('input', (e) => {
+                    this.temperature = parseInt(e.target.value);
+                    this.updateTemperatureDisplay();
+                    this.updateState();
+                    this.updateStateInfo();
+                });
+            }
+
+            updateTemperatureDisplay() {
+                this.tempDisplay.textContent = `${this.temperature}°C`;
+            }
+
+            updateState() {
+                if (this.temperature < 0) {
+                    this.currentState = 'solid';
+                    this.stateDisplay.textContent = '🧊 Solid Ice';
+                    this.stateDisplay.className = 'state-display state-solid';
+                } else if (this.temperature < 100) {
+                    this.currentState = 'liquid';
+                    this.stateDisplay.textContent = '💧 Liquid Water';
+                    this.stateDisplay.className = 'state-display state-liquid';
+                } else {
+                    this.currentState = 'gas';
+                    this.stateDisplay.textContent = '💨 Water Vapor';
+                    this.stateDisplay.className = 'state-display state-gas';
+                }
+            }
+
+            updateStateInfo() {
+                const stateInfo = {
+                    solid: {
+                        title: '🧊 Current State: Solid Ice',
+                        description: 'Below 0°C, water molecules form a rigid crystalline structure. The molecules vibrate in fixed positions but cannot move freely.',
+                        properties: [
+                            {
+                                title: 'Molecular Movement',
+                                desc: 'Molecules vibrate in fixed positions, forming ice crystals'
+                            },
+                            {
+                                title: 'Volume',
+                                desc: 'Fixed shape and volume, less dense than liquid water'
+                            },
+                            {
+                                title: 'Temperature Range',
+                                desc: 'Below 0°C (32°F) at standard atmospheric pressure'
+                            },
+                            {
+                                title: 'Molecular Bonds',
+                                desc: 'Strong hydrogen bonds create rigid hexagonal structure'
+                            }
+                        ]
+                    },
+                    liquid: {
+                        title: '💧 Current State: Liquid Water',
+                        description: 'Between 0°C and 100°C, water molecules have moderate kinetic energy. They move freely while maintaining some cohesion through hydrogen bonds.',
+                        properties: [
+                            {
+                                title: 'Molecular Movement',
+                                desc: 'Molecules slide past each other freely, creating fluid motion'
+                            },
+                            {
+                                title: 'Volume',
+                                desc: 'Takes the shape of container, nearly incompressible'
+                            },
+                            {
+                                title: 'Temperature Range',
+                                desc: '0°C to 100°C (32°F to 212°F) at standard pressure'
+                            },
+                            {
+                                title: 'Molecular Bonds',
+                                desc: 'Hydrogen bonds constantly break and reform'
+                            }
+                        ]
+                    },
+                    gas: {
+                        title: '💨 Current State: Water Vapor',
+                        description: 'Above 100°C, water molecules have high kinetic energy and move rapidly in all directions. They are far apart and barely interact with each other.',
+                        properties: [
+                            {
+                                title: 'Molecular Movement',
+                                desc: 'Rapid, random motion with high kinetic energy'
+                            },
+                            {
+                                title: 'Volume',
+                                desc: 'Expands to fill entire container, highly compressible'
+                            },
+                            {
+                                title: 'Temperature Range',
+                                desc: 'Above 100°C (212°F) at standard atmospheric pressure'
+                            },
+                            {
+                                title: 'Molecular Bonds',
+                                desc: 'Virtually no intermolecular forces, molecules independent'
+                            }
+                        ]
+                    }
+                };
+
+                const info = stateInfo[this.currentState];
+                
+                let propertiesHTML = '';
+                info.properties.forEach(prop => {
+                    propertiesHTML += `
+                        <div class="property-card">
+                            <h4>${prop.title}</h4>
+                            <p>${prop.desc}</p>
+                        </div>
+                    `;
+                });
+
+                this.infoContent.innerHTML = `
+                    <h3>${info.title}</h3>
+                    <p>${info.description}</p>
+                    <div class="properties-grid">
+                        ${propertiesHTML}
+                    </div>
+                `;
+            }
+
+            startAnimation() {
+                const animate = () => {
+                    this.molecules.forEach(molecule => {
+                        molecule.update(this.currentState, this.temperature);
+                    });
+                    requestAnimationFrame(animate);
+                };
+                animate();
+            }
+        }
+
+        // Initialize the model when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new WaterStatesModel();
+        });
+    </script>
+</body>
+</html>

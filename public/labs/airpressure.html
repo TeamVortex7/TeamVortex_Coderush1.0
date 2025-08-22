@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Pressure - Gas Simulation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #005AA7;
+            --secondary-color: #2196F3;
+            --background-color: #F0F4F8;
+            --container-bg-color: #FFFFFF;
+            --text-color: #2C3E50;
+            --secondary-text-color: #7F8C8D;
+            --border-color: #E0E0E0;
+            --gradient-start: #005AA7;
+            --gradient-end: #0099C2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #005AA7 0%, #FFFDE4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .simulation-container {
+            background: var(--container-bg-color);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .main-title {
+            font-size: clamp(1.8em, 5vw, 2.5em);
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: clamp(1em, 2vw, 1.2em);
+            color: var(--secondary-text-color);
+            margin-bottom: 20px;
+        }
+
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .canvas-container {
+            width: 100%;
+            position: relative;
+        }
+
+        .gas-container {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            border: 4px solid var(--primary-color);
+            border-radius: 10px;
+            background: #ecf0f1;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+            margin: 0 auto;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            transition: none;
+        }
+
+        .controls-panel {
+            width: 100%;
+            background: var(--background-color);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 10px;
+            display: block;
+            font-size: 1.1em;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .value-display {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-color);
+            background: var(--container-bg-color);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 2px solid var(--border-color);
+        }
+
+        .pressure-display {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 90, 167, 0.3);
+        }
+
+        .pressure-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .pressure-value {
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .pressure-unit {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+        .info-panel {
+            background: #e8f4f8;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .info-text {
+            color: var(--text-color);
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .reset-btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+            width: 100%;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: var(--container-bg-color);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: var(--secondary-text-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        @media (min-width: 768px) {
+            .simulation-area {
+                flex-direction: row;
+            }
+
+            .canvas-container {
+                flex: 2;
+            }
+
+            .controls-panel {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="simulation-container">
+        <div class="header">
+            <h1 class="main-title">Air Pressure</h1>
+            <p class="subtitle">Interactive Gas Simulation</p>
+        </div>
+
+        <div class="simulation-area">
+            <div class="canvas-container">
+                <div class="gas-container" id="gasContainer">
+                    </div>
+            </div>
+
+            <div class="controls-panel">
+                <div class="pressure-display">
+                    <div class="pressure-title">Air Pressure</div>
+                    <div class="pressure-value">
+                        <span id="pressureValue">1.0</span>
+                        <span class="pressure-unit">atm</span>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Temperature</div>
+                        <div class="stat-value"><span id="tempDisplay">300</span> K</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Volume</div>
+                        <div class="stat-value"><span id="volumeDisplay">240</span> L</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Particles</div>
+                        <div class="stat-value"><span id="particleCount">50</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Avg. Speed</div>
+                        <div class="stat-value"><span id="avgSpeed">2.5</span> m/s</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Temperature</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="temperatureSlider" 
+                               min="100" max="600" value="300">
+                        <div class="value-display"><span id="temperatureValue">300</span> K</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Number of Particles</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="particleSlider" 
+                               min="10" max="100" value="50">
+                        <div class="value-display"><span id="particleSliderValue">50</span></div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Container Volume</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="volumeSlider" 
+                               min="150" max="400" value="240">
+                        <div class="value-display"><span id="volumeSliderValue">240</span> L</div>
+                    </div>
+                </div>
+
+                <button class="reset-btn" onclick="resetSimulation()">Reset Simulation</button>
+
+                <div class="info-panel">
+                    <div class="info-title">About This Simulation</div>
+                    <div class="info-text">
+                        This simulation demonstrates the kinetic molecular theory of gases. 
+                        Adjust temperature, particle count, and volume to see how they affect air pressure. 
+                        Higher temperature increases particle speed, leading to more collisions and higher pressure.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Gas Simulation Physics Engine
+        class GasSimulation {
+            constructor() {
+                this.container = document.getElementById('gasContainer');
+                this.particles = [];
+                this.animationId = null;
+                this.temperature = 300; // Kelvin
+                this.particleCount = 50;
+                this.containerWidth = 600;
+                this.containerHeight = 400;
+                this.pressure = 1.0;
+                this.collisionCount = 0;
+                this.lastPressureUpdate = Date.now();
+                
+                this.initializeControls();
+                this.initializeParticles();
+                this.startAnimation();
+            }
+
+            initializeControls() {
+                // Temperature slider
+                const tempSlider = document.getElementById('temperatureSlider');
+                const tempValue = document.getElementById('temperatureValue');
+                tempSlider.addEventListener('input', (e) => {
+                    this.temperature = parseInt(e.target.value);
+                    tempValue.textContent = this.temperature;
+                    document.getElementById('tempDisplay').textContent = this.temperature;
+                    this.updateParticleSpeed();
+                });
+
+                // Particle count slider
+                const particleSlider = document.getElementById('particleSlider');
+                const particleValue = document.getElementById('particleSliderValue');
+                particleSlider.addEventListener('input', (e) => {
+                    this.particleCount = parseInt(e.target.value);
+                    particleValue.textContent = this.particleCount;
+                    document.getElementById('particleCount').textContent = this.particleCount;
+                    this.updateParticleCount();
+                });
+
+                // Volume slider
+                const volumeSlider = document.getElementById('volumeSlider');
+                const volumeValue = document.getElementById('volumeSliderValue');
+                volumeSlider.addEventListener('input', (e) => {
+                    const volume = parseInt(e.target.value);
+                    volumeValue.textContent = volume;
+                    document.getElementById('volumeDisplay').textContent = volume;
+                    this.updateContainerSize(volume);
+                });
+            }
+
+            initializeParticles() {
+                this.particles = [];
+                this.container.innerHTML = '';
+                
+                for (let i = 0; i < this.particleCount; i++) {
+                    this.createParticle();
+                }
+            }
+
+            createParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 8 + 6; // 6-14px diameter
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                
+                const x = Math.random() * (this.container.clientWidth - size);
+                const y = Math.random() * (this.container.clientHeight - size);
+                
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                
+                // Assign velocity based on temperature
+                const speedFactor = Math.sqrt(this.temperature / 300);
+                const vx = (Math.random() - 0.5) * 4 * speedFactor;
+                const vy = (Math.random() - 0.5) * 4 * speedFactor;
+                
+                particle.vx = vx;
+                particle.vy = vy;
+                particle.size = size;
+                
+                this.container.appendChild(particle);
+                this.particles.push(particle);
+            }
+
+            updateParticleSpeed() {
+                const speedFactor = Math.sqrt(this.temperature / 300);
+                this.particles.forEach(particle => {
+                    const currentSpeed = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+                    const newSpeed = currentSpeed * speedFactor / Math.sqrt(particle.currentSpeedFactor || 1);
+                    const angle = Math.atan2(particle.vy, particle.vx);
+                    particle.vx = Math.cos(angle) * newSpeed;
+                    particle.vy = Math.sin(angle) * newSpeed;
+                    particle.currentSpeedFactor = speedFactor;
+                });
+            }
+
+            updateParticleCount() {
+                const currentCount = this.particles.length;
+                
+                if (this.particleCount > currentCount) {
+                    // Add particles
+                    for (let i = currentCount; i < this.particleCount; i++) {
+                        this.createParticle();
+                    }
+                } else if (this.particleCount < currentCount) {
+                    // Remove particles
+                    for (let i = currentCount - 1; i >= this.particleCount; i--) {
+                        const particle = this.particles[i];
+                        this.container.removeChild(particle);
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+
+            updateContainerSize(volume) {
+                // Scale container based on volume (240L = 600px width as base)
+                const scale = volume / 240;
+                const newWidth = Math.max(300, Math.min(600, 600 * Math.sqrt(scale)));
+                const newHeight = Math.max(200, Math.min(400, 400 * Math.sqrt(scale)));
+                
+                this.containerWidth = newWidth;
+                this.containerHeight = newHeight;
+                
+                this.container.style.width = newWidth + 'px';
+                this.container.style.height = newHeight + 'px';
+                
+                // Adjust particle positions if container shrinks
+                this.particles.forEach(particle => {
+                    const x = parseFloat(particle.style.left);
+                    const y = parseFloat(particle.style.top);
+                    
+                    if (x + particle.size > newWidth) {
+                        particle.style.left = (newWidth - particle.size) + 'px';
+                    }
+                    if (y + particle.size > newHeight) {
+                        particle.style.top = (newHeight - particle.size) + 'px';
+                    }
+                });
+            }
+
+            updateParticles() {
+                this.collisionCount = 0;
+                
+                this.particles.forEach(particle => {
+                    // Update position
+                    let x = parseFloat(particle.style.left) + particle.vx;
+                    let y = parseFloat(particle.style.top) + particle.vy;
+                    
+                    // Collision with walls
+                    if (x <= 0 || x + particle.size >= this.containerWidth) {
+                        particle.vx *= -0.95; // Slight energy loss
+                        x = Math.max(0, Math.min(x, this.containerWidth - particle.size));
+                        this.collisionCount++;
+                    }
+                    
+                    if (y <= 0 || y + particle.size >= this.containerHeight) {
+                        particle.vy *= -0.95; // Slight energy loss
+                        y = Math.max(0, Math.min(y, this.containerHeight - particle.size));
+                        this.collisionCount++;
+                    }
+                    
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                });
+
+                // Particle-particle collisions (simplified)
+                for (let i = 0; i < this.particles.length; i++) {
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        this.checkParticleCollision(this.particles[i], this.particles[j]);
+                    }
+                }
+            }
+
+            checkParticleCollision(p1, p2) {
+                const x1 = parseFloat(p1.style.left) + p1.size / 2;
+                const y1 = parseFloat(p1.style.top) + p1.size / 2;
+                const x2 = parseFloat(p2.style.left) + p2.size / 2;
+                const y2 = parseFloat(p2.style.top) + p2.size / 2;
+                
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const minDistance = (p1.size + p2.size) / 2;
+                
+                if (distance < minDistance) {
+                    // Simple elastic collision
+                    const angle = Math.atan2(dy, dx);
+                    const sin = Math.sin(angle);
+                    const cos = Math.cos(angle);
+                    
+                    // Rotate velocities
+                    const vx1 = p1.vx * cos + p1.vy * sin;
+                    const vy1 = p1.vy * cos - p1.vx * sin;
+                    const vx2 = p2.vx * cos + p2.vy * sin;
+                    const vy2 = p2.vy * cos - p2.vx * sin;
+                    
+                    // Exchange velocities along collision line
+                    const finalVx1 = vx2;
+                    const finalVx2 = vx1;
+                    
+                    // Rotate back
+                    p1.vx = finalVx1 * cos - vy1 * sin;
+                    p1.vy = vy1 * cos + finalVx1 * sin;
+                    p2.vx = finalVx2 * cos - vy2 * sin;
+                    p2.vy = vy2 * cos + finalVx2 * sin;
+                    
+                    // Separate particles
+                    const overlap = minDistance - distance;
+                    const separationX = (dx / distance) * overlap * 0.5;
+                    const separationY = (dy / distance) * overlap * 0.5;
+                    
+                    p1.style.left = (parseFloat(p1.style.left) - separationX) + 'px';
+                    p1.style.top = (parseFloat(p1.style.top) - separationY) + 'px';
+                    p2.style.left = (parseFloat(p2.style.left) + separationX) + 'px';
+                    p2.style.top = (parseFloat(p2.style.top) + separationY) + 'px';
+                    
+                    this.collisionCount++;
+                }
+            }
+
+            calculatePressure() {
+                // Simplified pressure calculation based on ideal gas law
+                // P = nRT/V, but we'll use collision frequency as a proxy
+                const volume = (this.containerWidth * this.containerHeight) / 10000; // Normalize
+                const collisionFactor = this.collisionCount / this.particles.length;
+                const temperatureFactor = this.temperature / 300;
+                const densityFactor = this.particles.length / 50;
+                
+                this.pressure = (densityFactor * temperatureFactor * (1 + collisionFactor * 0.1)) / volume * 50;
+                
+                // Update display
+                document.getElementById('pressureValue').textContent = this.pressure.toFixed(2);
+                
+                // Calculate and display average speed
+                let totalSpeed = 0;
+                this.particles.forEach(particle => {
+                    totalSpeed += Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+                });
+                const avgSpeed = totalSpeed / this.particles.length;
+                document.getElementById('avgSpeed').textContent = avgSpeed.toFixed(1);
+            }
+
+            animate() {
+                this.updateParticles();
+                
+                // Update pressure every 100ms
+                if (Date.now() - this.lastPressureUpdate > 100) {
+                    this.calculatePressure();
+                    this.lastPressureUpdate = Date.now();
+                }
+                
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+
+            startAnimation() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+                this.animate();
+            }
+
+            stop() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+            }
+
+            reset() {
+                this.stop();
+                this.temperature = 300;
+                this.particleCount = 50;
+                this.containerWidth = 600;
+                this.containerHeight = 400;
+                
+                // Reset controls
+                document.getElementById('temperatureSlider').value = 300;
+                document.getElementById('temperatureValue').textContent = '300';
+                document.getElementById('tempDisplay').textContent = '300';
+                
+                document.getElementById('particleSlider').value = 50;
+                document.getElementById('particleSliderValue').textContent = '50';
+                document.getElementById('particleCount').textContent = '50';
+                
+                document.getElementById('volumeSlider').value = 240;
+                document.getElementById('volumeSliderValue').textContent = '240';
+                document.getElementById('volumeDisplay').textContent = '240';
+                
+                // Reset container size
+                this.container.style.width = '600px';
+                this.container.style.height = '400px';
+                
+                this.initializeParticles();
+                this.startAnimation();
+            }
+        }
+
+        // Global functions
+        function resetSimulation() {
+            if (window.gasSimulation) {
+                window.gasSimulation.reset();
+            }
+        }
+
+        // Initialize simulation when page loads
+        window.addEventListener('load', () => {
+            window.gasSimulation = new GasSimulation();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.gasSimulation) {
+                window.gasSimulation.stop();
+            }
+        });
+    </script>
+</body>
+</html>
