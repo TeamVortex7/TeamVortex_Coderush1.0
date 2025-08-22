@@ -38,12 +38,11 @@ const BackgroundAnimation = () => (
       }
     `}</style>
     <div className="absolute inset-0 bg-breathing" />
-    {/* This overlay is crucial for text readability */}
     <div className="absolute inset-0 bg-black/40" />
   </div>
 );
 
-// --- Navbar (Using <a> tags for accessibility) ---
+// --- Navbar ---
 const Navbar = () => (
   <header className="fixed top-0 left-0 w-full bg-white/70 backdrop-blur-lg z-50 shadow-sm border-b border-gray-200/80 font-montserrat">
     <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -84,13 +83,13 @@ const Hero = () => {
   );
 };
 
-// --- Team Section (Smoother Transitions) ---
+// --- Team Section ---
 const TeamSection = () => {
   const teamMembers = [
-    { id: 1, name: "Ved Sharanagate", role: "Lead Developer", image: "/assets/team_img/ved.png", socials: { twitter: "#", linkedin: "#", github: "#" } },
-    { id: 2, name: "Prasad Pande", role: "Backend Developer", image: "https://placehold.co/400x400/A5B4FC/312E81?text=Maria", socials: { twitter: "#", linkedin: "#", github: "#" } },
-    { id: 3, name: "Vyankatesh Punnal", role: "Frontend Developer", image: "https://placehold.co/400x400/6EE7B7/064E3B?text=James", socials: { twitter: "#", linkedin: "#", github: "#" } },
-    { id: 4, name: "Sudhanshu Mahurkar", role: "Frontend Developer", image: "https://placehold.co/400x400/F9A8D4/831843?text=Priya", socials: { twitter: "#", linkedin: "#", github: "#" } },
+    { id: 1, name: "Ved Sharanagate", role: "Lead Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/ved.webp", socials: { twitter: "#", linkedin: "#", github: "#" } },
+    { id: 2, name: "Prasad Pande", role: "Backend Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/prasad.webp", socials: { twitter: "#", linkedin: "#", github: "#" } },
+    { id: 3, name: "Vyankatesh Punnal", role: "Frontend Developer", image: "https://raw.githubusercontent.com/TeamVortex7/TeamVortex_Coderush1.0/refs/heads/main/src/assets/team_img/varun.webp", socials: { twitter: "#", linkedin: "#", github: "#" } },
+    { id: 4, name: "Sudhanshu Mahurkar", role: "Frontend Developer", image: "https://placehold.co/400x400/F9A8D4/831843?text=Sudhanshu", socials: { twitter: "#", linkedin: "#", github: "#" } },
   ];
   const [activeMember, setActiveMember] = useState(teamMembers[0]);
 
@@ -99,7 +98,7 @@ const TeamSection = () => {
       setActiveMember(prev => teamMembers[(teamMembers.findIndex(m => m.id === prev.id) + 1) % teamMembers.length]);
     }, 5000);
     return () => clearInterval(interval);
-  }, []); // Dependency array is empty as teamMembers is static
+  }, []);
 
   return (
     <section id="about" className="py-20 bg-white font-montserrat">
@@ -110,7 +109,7 @@ const TeamSection = () => {
           <div className="relative h-80 w-48">
             {teamMembers.map(member => (
               <div key={member.id} className={`absolute top-0 left-0 w-full transition-opacity duration-500 ease-in-out ${activeMember.id === member.id ? 'opacity-100' : 'opacity-0'}`}>
-                <img src={member.image} alt={member.name} className="w-48 h-48 rounded-full mx-auto shadow-2xl border-4 border-white mb-4" />
+                <img src={member.image} alt={member.name} className="w-48 h-48 rounded-full mx-auto shadow-2xl border-4 border-white mb-4 object-cover" />
                 <h3 className="text-2xl font-bold text-gray-900">{member.name}</h3>
                 <p className="text-blue-600 font-medium">{member.role}</p>
                 <div className="flex justify-center space-x-4 mt-4 text-gray-500">
@@ -143,13 +142,13 @@ const TeamSection = () => {
   );
 };
 
-// --- Catalog Section ---
+// --- Catalog Section (FIXED CARD HEIGHT) ---
 const ContentCatalog = () => {
   const catalogRef = useRef(null);
   const items = [
-    { image: "https://placehold.co/600x400/93C5FD/1E3A8A?text=Biology", title: "Virtual Biology Lab", description: "Dissect, explore cells, and understand DNA replication interactively.", tag: "Biology" },
+    { image: "https://placehold.co/600x400/93C5FD/1E3A8A?text=Biology", title: "Virtual Biology Lab", description: "Dissect, explore cells, and understand DNA replication interactively. This lab provides a deep dive into cellular structures.", tag: "Biology" },
     { image: "https://placehold.co/600x400/A5B4FC/312E81?text=Chemistry", title: "Chemistry Reaction Simulator", description: "Mix chemicals safely, observe reactions, and explore the periodic table.", tag: "Chemistry" },
-    { image: "https://placehold.co/600x400/6EE7B7/064E3B?text=Physics", title: "Physics World", description: "Experiment with gravity, circuits, and electricity in real-time.", tag: "Physics" },
+    { image: "https://placehold.co/600x400/6EE7B7/064E3B?text=Physics", title: "Physics World", description: "Experiment with gravity, circuits, and electricity in real-time. A perfect environment for learning core physics concepts.", tag: "Physics" },
   ];
 
   useLayoutEffect(() => {
@@ -169,13 +168,14 @@ const ContentCatalog = () => {
         <p className="max-w-2xl mx-auto text-gray-600 mb-12">Dive into our library of immersive simulations.</p>
         <div className="grid md:grid-cols-3 gap-8 text-left">
           {items.map((it, i) => (
-            <div key={i} className="catalog-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/80 transform hover:-translate-y-2 transition-transform duration-300">
+            <div key={i} className="catalog-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/80 transform hover:-translate-y-2 transition-transform duration-300 flex flex-col">
               <img src={it.image} alt={it.title} className="w-full h-48 object-cover" />
-              <div className="p-6">
-                <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">{it.tag}</span>
+              {/* This wrapper div allows the content to grow and push the button down */}
+              <div className="p-6 flex flex-col flex-grow">
+                <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full self-start">{it.tag}</span>
                 <h3 className="text-2xl font-bold text-gray-900 mt-3">{it.title}</h3>
-                <p className="text-gray-600 text-sm mb-6 mt-1">{it.description}</p>
-                <button className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:scale-105 transform transition-transform duration-300">
+                <p className="text-gray-600 text-sm mt-1 flex-grow">{it.description}</p>
+                <button className="w-full mt-6 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:scale-105 transform transition-transform duration-300">
                   Try for Free
                 </button>
               </div>
@@ -198,10 +198,42 @@ const JoinUs = () => (
   </section>
 );
 
-// --- Footer ---
+// --- Footer (ENHANCED) ---
 const Footer = () => (
-  <footer className="bg-gray-900 text-gray-400 py-6 text-center font-montserrat">
-    <p>© {new Date().getFullYear()} Team Vortex. All Rights Reserved.</p>
+  <footer className="bg-gray-900 text-gray-400 font-montserrat">
+    <div className="container mx-auto px-6 py-12">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* Company Info */}
+        <div className="col-span-1 md:col-span-2">
+          <h2 className="text-2xl font-bold text-white mb-2">Team<span className="text-blue-500">Vortex</span></h2>
+          <p className="pr-8">Our mission is to make education an adventure. We use immersive technology to ignite curiosity and empower students to explore, create, and build the future.</p>
+        </div>
+        
+        {/* Quick Links */}
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
+          <ul className="space-y-2">
+            <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
+            <li><a href="#catalog" className="hover:text-white transition-colors">Catalog</a></li>
+            <li><a href="#join" className="hover:text-white transition-colors">Join Us</a></li>
+          </ul>
+        </div>
+
+        {/* Social & Contact */}
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4">Follow Us</h3>
+          <div className="flex space-x-4 mb-4">
+            <a href="#" className="hover:text-blue-400 transition-colors"><TwitterIcon /></a>
+            <a href="#" className="hover:text-blue-600 transition-colors"><LinkedinIcon /></a>
+            <a href="#" className="hover:text-white transition-colors"><GithubIcon /></a>
+          </div>
+          <a href="mailto:contact@teamvortex.dev" className="hover:text-white transition-colors text-sm">contact@teamvortex.dev</a>
+        </div>
+      </div>
+    </div>
+    <div className="bg-gray-900 border-t border-gray-800 py-4">
+      <p className="text-center text-sm">&copy; {new Date().getFullYear()} Team Vortex. All Rights Reserved.</p>
+    </div>
   </footer>
 );
 
@@ -211,11 +243,9 @@ export default function App() {
     <div className="font-montserrat">
       <BackgroundAnimation />
       <Navbar />
-      {/* This relative wrapper ensures content appears above the fixed background */}
       <div className="relative z-10">
         <main>
           <Hero />
-          {/* Sections below need a background color to not be transparent */}
           <TeamSection />
           <ContentCatalog />
           <JoinUs />
