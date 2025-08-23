@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+// Add GoogleAuthProvider to this import line
+import { getAuth, GoogleAuthProvider } from "firebase/auth"; 
 
 // The config object now reads from Vercel's environment variables
 const firebaseConfig = {
@@ -14,4 +15,5 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+// This line will now work correctly
 export const googleProvider = new GoogleAuthProvider();
