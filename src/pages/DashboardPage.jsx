@@ -195,10 +195,10 @@ export default function DashboardPage() {
     { title: "Earth Sciences Hub", subject: "Geography", description: "Explore geological formations and climate.", imageUrl: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=600&h=400&fit=crop", path: "/earthscience" },
     { title: "History Timeline", subject: "History", description: "Interactive historical events and timelines.", imageUrl: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&h=400&fit=crop", path: "/history" },
   ];
-  const courseCompletion = 75;
-  const totalModules = 20;
+  const courseCompletion = 8;
+  const totalModules = 16;
   const completedModules = Math.floor((courseCompletion / 100) * totalModules);
-  const labsFinished = 8;
+  const labsFinished = 2;
   const achievementsEarned = 15;
 
   useEffect(() => {
