@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earth's Layers Interactive Model</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #ffffff 0%, #005AA7 100%);
+      color: #333;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    header {
+      background: #005AA7;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      font-style: italic;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    .main-content {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .canvas-container {
+      flex: 3;
+      min-width: 300px;
+      min-height: 450px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #e9eff5;
+      position: relative;
+    }
+
+    #simulationCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .controls-info-wrapper {
+      flex: 2;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel {
+      background: #f0f8ff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    h2, h3 {
+      color: #005AA7;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #005AA7;
+      padding-bottom: 5px;
+    }
+    
+    h3 {
+       margin-top: 15px;
+    }
+
+    .control-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      font-weight: 400;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin: 5px 0;
+      -webkit-appearance: none;
+      height: 8px;
+      background: #d1d9e6;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #005AA7;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+     input[type="checkbox"] {
+      accent-color: #005AA7;
+      margin-right: 8px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .value-display {
+      text-align: right;
+      font-weight: 600;
+      color: #005AA7;
+    }
+
+    #info-panel p {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    #info-panel ul {
+      list-style-type: disc;
+      margin-left: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    li {
+        margin-bottom: 8px;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 992px) {
+      .main-content {
+        flex-direction: column;
+      }
+      .canvas-container {
+        height: 50vh;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      h1 {
+        font-size: 1.8rem;
+      }
+      .subtitle {
+        font-size: 0.9rem;
+      }
+      .main-content {
+        padding: 10px;
+        gap: 15px;
+      }
+       .controls-info-wrapper {
+        min-width: unset;
+      }
+       .panel {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Earth's Layers Interactive Model</h1>
+      <p class="subtitle">Explore the dynamic structure of our planet</p>
+    </header>
+
+    <div class="main-content">
+      <div class="canvas-container">
+        <canvas id="simulationCanvas"></canvas>
+      </div>
+
+      <div class="controls-info-wrapper">
+        <div id="controls" class="panel">
+          <h2>Controls</h2>
+          <div class="control-group">
+            <label for="rotation-speed">Rotation Speed</label>
+            <input type="range" id="rotation-speed" min="0" max="0.05" step="0.001" value="0.01">
+            <div class="value-display"><span id="speedValue">0.01</span></div>
+          </div>
+          <div class="control-group">
+             <label>Layer Visibility</label>
+             <label class="checkbox-label"><input type="checkbox" id="crust-visible" checked> Crust</label>
+             <label class="checkbox-label"><input type="checkbox" id="mantle-visible" checked> Mantle</label>
+             <label class="checkbox-label"><input type="checkbox" id="outer-core-visible" checked> Outer Core</label>
+             <label class="checkbox-label"><input type="checkbox" id="inner-core-visible" checked> Inner Core</label>
+          </div>
+        </div>
+
+        <div id="info-panel" class="panel">
+          <h2>Layer Information</h2>
+          <p id="layer-info">Click a layer to explore its details!</p>
+          <h3>Key Concepts</h3>
+          <ul>
+            <li>Earth's layers vary in composition, density, and state (solid, liquid, semi-solid).</li>
+            <li>Plate tectonics is driven by mantle convection, shaping the surface.</li>
+            <li>The liquid outer core's flow generates Earth's magnetic field.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    const scene = new THREE.Scene();
+    const canvasContainer = document.querySelector('.canvas-container');
+    const camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.getElementById('simulationCanvas'),
+      antialias: true,
+      alpha: true
+    });
+    renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+    renderer.setClearColor(0x000000, 0);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xffffff, 1, 200);
+    pointLight.position.set(15, 15, 15);
+    scene.add(pointLight);
+    
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    canvasContainer.addEventListener('mousedown', e => { isDragging = true; });
+    canvasContainer.addEventListener('mouseup', e => { isDragging = false; });
+    canvasContainer.addEventListener('mouseleave', e => { isDragging = false; });
+    canvasContainer.addEventListener('mousemove', e => {
+        if (isDragging) {
+            const deltaMove = {
+                x: e.offsetX - previousMousePosition.x,
+                y: e.offsetY - previousMousePosition.y
+            };
+            
+            earthGroup.rotation.y += deltaMove.x * 0.005;
+            earthGroup.rotation.x += deltaMove.y * 0.005;
+        }
+        previousMousePosition = { x: e.offsetX, y: e.offsetY };
+    });
+
+
+    const layers = [{
+      name: 'Inner Core',
+      radius: 1.2,
+      color: 0xffd700,
+      info: 'The Inner Core is a solid sphere of iron and nickel with a radius of about 1,220 km. Despite temperatures reaching ~5,200°C, immense pressure keeps it solid.'
+    }, {
+      name: 'Outer Core',
+      radius: 3.4,
+      color: 0xffa500,
+      info: 'The Outer Core is a liquid layer of iron and nickel, about 2,260 km thick. The movement of this liquid metal generates Earth\'s powerful magnetic field.'
+    }, {
+      name: 'Mantle',
+      radius: 6.0,
+      color: 0xa0522d,
+      info: 'The Mantle is the thickest layer (~2,900 km) and consists of semi-solid silicate rock. It flows very slowly over millions of years, driving plate tectonics through convection currents.'
+    }, {
+      name: 'Crust',
+      radius: 6.4,
+      texture: 'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
+      info: 'The Crust is the thin, solid outermost layer where we live. It is divided into oceanic crust (5-10 km thick) and continental crust (30-70 km thick).'
+    }];
+
+    const earthGroup = new THREE.Group();
+    const layerMeshes = [];
+    const labelSprites = [];
+    const textureLoader = new THREE.TextureLoader();
+
+    layers.forEach((layer) => {
+      const geometry = new THREE.SphereGeometry(layer.radius, 64, 64);
+      let material;
+      if (layer.texture) {
+        material = new THREE.MeshPhongMaterial({
+          map: textureLoader.load(layer.texture),
+          shininess: 30
+        });
+      } else {
+        material = new THREE.MeshPhongMaterial({
+          color: layer.color,
+          transparent: true,
+          opacity: 0.9,
+          shininess: 50
+        });
+      }
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.userData = layer;
+      earthGroup.add(mesh);
+      layerMeshes.push(mesh);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 64;
+      const context = canvas.getContext('2d');
+      context.font = 'bold 24px Montserrat';
+      context.fillStyle = 'white';
+      context.textAlign = 'center';
+      context.fillText(layer.name, 128, 32);
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+      const sprite = new THREE.Sprite(spriteMaterial);
+      sprite.position.set(layer.radius + 1.0, 0, 0);
+      sprite.scale.set(3, 0.75, 1);
+      earthGroup.add(sprite);
+      labelSprites.push(sprite);
+    });
+
+    scene.add(earthGroup);
+    camera.position.z = 15;
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onMouseClick(event) {
+        const rect = canvasContainer.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(layerMeshes.filter(mesh => mesh.visible), false);
+
+        if (intersects.length > 0) {
+            const layer = intersects[0].object.userData;
+            document.getElementById('layer-info').textContent = layer.info;
+        }
+    }
+
+    canvasContainer.addEventListener('click', onMouseClick);
+    
+    const rotationSpeedInput = document.getElementById('rotation-speed');
+    const speedValueDisplay = document.getElementById('speedValue');
+    
+    rotationSpeedInput.addEventListener('input', () => {
+        speedValueDisplay.textContent = parseFloat(rotationSpeedInput.value).toFixed(3);
+    });
+
+    const visibilityCheckboxes = [
+        { checkbox: document.getElementById('inner-core-visible'), meshIndex: 0 },
+        { checkbox: document.getElementById('outer-core-visible'), meshIndex: 1 },
+        { checkbox: document.getElementById('mantle-visible'), meshIndex: 2 },
+        { checkbox: document.getElementById('crust-visible'), meshIndex: 3 }
+    ];
+
+    visibilityCheckboxes.forEach(({ checkbox, meshIndex }) => {
+      checkbox.addEventListener('change', () => {
+        layerMeshes[meshIndex].visible = checkbox.checked;
+        labelSprites[meshIndex].visible = checkbox.checked;
+      });
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const rotationSpeed = parseFloat(rotationSpeedInput.value);
+      earthGroup.rotation.y += rotationSpeed;
+      labelSprites.forEach(sprite => {
+          sprite.quaternion.copy(camera.quaternion);
+      });
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    function onWindowResize() {
+        const width = canvasContainer.clientWidth;
+        const height = canvasContainer.clientHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    }
+    
+    window.addEventListener('resize', onWindowResize);
+
+  </script>
+</body>
+</html>

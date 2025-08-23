@@ -3,832 +3,399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responsive 3D Graphing Calculator</title>
+    <title>3D Virtual Algebra Tiles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
-        
         body {
-            background: linear-gradient(135deg, #f5f7fa, #e4e7eb);
-            color: #2d3748;
-            min-height: 100vh;
-            overflow-x: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #005AA7 0%, #FFFDE4 100%);
+            overflow: hidden; /* Prevent scrolling */
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 30px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            color: #005AA7;
-            font-weight: 700;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            color: #4a5568;
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
-            font-weight: 500;
-        }
-        
-        .calculator-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-        
-        @media (max-width: 1000px) {
-            .calculator-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .graphing-area {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            height: 600px;
-            position: relative;
-        }
-        
-        #graph-container {
+        #canvas-container {
             width: 100%;
             height: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .controls-panel {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .panel-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(0, 90, 167, 0.2);
-            color: #005AA7;
-            font-weight: 600;
-        }
-        
-        .control-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #005AA7;
-        }
-        
-        select, input, button {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            background: white;
-            color: #2d3748;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            transition: all 0.3s;
-        }
-        
-        select:focus, input:focus {
-            outline: none;
-            border-color: #005AA7;
-            box-shadow: 0 0 0 3px rgba(0, 90, 167, 0.2);
-        }
-        
-        button {
-            background: #005AA7;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            border: none;
-        }
-        
-        button:hover {
-            background: #00458a;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 90, 167, 0.3);
-        }
-        
-        .btn-danger {
-            background: #e53e3e;
-        }
-        
-        .btn-danger:hover {
-            background: #c53030;
-        }
-        
-        .btn-success {
-            background: #38a169;
-        }
-        
-        .btn-success:hover {
-            background: #2f855a;
-        }
-        
-        .function-input {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .function-input input {
-            flex: 1;
-        }
-        
-        .function-input button {
-            width: auto;
-            min-width: 100px;
-        }
-        
-        .examples {
-            margin-top: 30px;
-        }
-        
-        .examples-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        @media (max-width: 500px) {
-            .examples-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .example-btn {
-            background: white;
-            text-align: left;
-            padding: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-        
-        .example-btn:hover {
-            background: #f7fafc;
-            border-color: #005AA7;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 90, 167, 0.15);
-        }
-        
-        .example-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #005AA7;
-        }
-        
-        .example-formula {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        
-        .information-panel {
-            grid-column: 1 / -1;
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-top: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .concept {
-            margin-bottom: 25px;
-        }
-        
-        .concept h3 {
-            color: #005AA7;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        
-        .concept p {
-            line-height: 1.6;
-            margin-bottom: 10px;
-            color: #4a5568;
-        }
-        
-        .axis-controls {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-        
-        @media (max-width: 600px) {
-            .axis-controls {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .slider-value {
-            text-align: center;
-            font-size: 0.9rem;
-            margin-top: -8px;
-            margin-bottom: 10px;
-            color: #005AA7;
-            font-weight: 500;
-        }
-        
-        input[type="range"] {
-            -webkit-appearance: none;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #005AA7;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb:hover {
-            background: #00458a;
-            transform: scale(1.2);
-        }
-        
-        .instructions {
-            background: #f7fafc;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            line-height: 1.6;
-            border-left: 4px solid #005AA7;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 10px;
-            color: #005AA7;
-            font-weight: 600;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-            color: #4a5568;
-        }
-        
-        /* Mobile Navigation */
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            bottom: 0;
+            position: absolute;
+            top: 0;
             left: 0;
-            right: 0;
-            background: white;
-            padding: 15px;
-            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
+            z-index: 1;
         }
-        
-        .mobile-nav-buttons {
-            display: flex;
-            justify-content: space-around;
+        .ui-container {
+            position: absolute;
+            z-index: 2;
+            width: 100%;
+            padding: 1rem;
+            pointer-events: none; /* Allow clicks to pass through to canvas */
         }
-        
-        .mobile-nav-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: none;
-            border: none;
-            color: #4a5568;
-            font-size: 0.8rem;
-            cursor: pointer;
+        .ui-element {
+            pointer-events: auto; /* Re-enable pointer events for UI elements */
         }
-        
-        .mobile-nav-btn i {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
-        
-        .mobile-nav-btn.active {
-            color: #005AA7;
+        /* Custom button style for the requested color */
+        .btn-primary {
+            background-color: #005AA7;
+            color: white;
         }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2rem;
-            }
-            
-            .subtitle {
-                font-size: 1rem;
-            }
-            
-            .graphing-area {
-                height: 400px;
-            }
-            
-            .function-input {
-                flex-direction: column;
-            }
-            
-            .function-input button {
-                width: 100%;
-            }
-            
-            .mobile-nav {
-                display: block;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 10px;
-            }
-            
-            header {
-                padding: 20px 15px;
-                margin-bottom: 20px;
-            }
-            
-            h1 {
-                font-size: 1.8rem;
-            }
-            
-            .graphing-area {
-                padding: 15px;
-                height: 350px;
-                margin-bottom: 60px;
-            }
-            
-            .controls-panel {
-                padding: 20px;
-                margin-bottom: 60px;
-            }
-            
-            .information-panel {
-                padding: 20px;
-                margin-bottom: 60px;
-            }
-            
-            .panel-title {
-                font-size: 1.3rem;
-            }
-        }
-        
-        /* Tabs for mobile */
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Loading indicator */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #005AA7;
-        }
-        
-        .loading.spinner {
-            border: 4px solid rgba(0, 90, 167, 0.2);
-            border-radius: 50%;
-            border-top: 4px solid #005AA7;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .btn-primary:hover {
+            background-color: #004c8f;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>3D Graphing Calculator</h1>
-            <p class="subtitle">Visualize mathematical functions in three dimensions. Plot surfaces, manipulate variables, and explore how changes impact the shape of graphs.</p>
-        </header>
-        
-        <div class="calculator-container">
-            <div class="graphing-area">
-                <div id="graph-container"></div>
-                <div class="loading" id="loading">
-                    <div class="loading spinner"></div>
-                    <p>Rendering graph...</p>
-                </div>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="canvas-container"></div>
+
+    <!-- Top UI: Equation Input and Display -->
+    <div class="ui-container top-0 left-0 flex justify-center">
+        <div class="ui-element glassmorphism p-4 rounded-lg shadow-lg text-center w-full max-w-2xl">
+            <h1 class="text-2xl font-bold mb-2">3D Algebra Tile Lab</h1>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+                <input type="text" id="equation-input" class="bg-white text-gray-800 border border-gray-300 px-4 py-2 rounded-md w-full sm:w-64 text-center" placeholder="e.g., 2x + 1 = 5">
+                <button id="set-equation-btn" class="btn-primary px-4 py-2 rounded-md font-semibold w-full sm:w-auto">Set Equation</button>
+                <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-semibold w-full sm:w-auto">Reset</button>
             </div>
-            
-            <div class="controls-panel">
-                <h2 class="panel-title">Graph Controls</h2>
-                
-                <div class="control-group">
-                    <label for="function-type">Function Type:</label>
-                    <select id="function-type">
-                        <option value="z">z = f(x, y)</option>
-                        <option value="parametric">Parametric Surface</option>
-                        <option value="spherical">Spherical Coordinates</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="function-input">Function Expression:</label>
-                    <div class="function-input">
-                        <input type="text" id="function-input" value="Math.sin(x*x + y*y) * 5" placeholder="Enter function (e.g., Math.sin(x*x + y*y))">
-                        <button id="plot-btn">Plot</button>
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <label>Axis Range:</label>
-                    <div class="axis-controls">
-                        <div>
-                            <label for="x-range">X Range (±)</label>
-                            <input type="range" id="x-range" min="5" max="30" value="15">
-                            <div class="slider-value" id="x-value">15</div>
-                        </div>
-                        <div>
-                            <label for="y-range">Y Range (±)</label>
-                            <input type="range" id="y-range" min="5" max="30" value="15">
-                            <div class="slider-value" id="y-value">15</div>
-                        </div>
-                        <div>
-                            <label for="z-range">Z Range (±)</label>
-                            <input type="range" id="z-range" min="5" max="30" value="15">
-                            <div class="slider-value" id="z-value">15</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <label for="resolution">Resolution:</label>
-                    <input type="range" id="resolution" min="20" max="100" value="50">
-                    <div class="slider-value" id="resolution-value">50</div>
-                </div>
-                
-                <button id="reset-view-btn">Reset View</button>
-                <button class="btn-danger" id="clear-btn">Clear Graph</button>
-                
-                <div class="examples">
-                    <h3>Example Functions</h3>
-                    <div class="examples-grid">
-                        <div class="example-btn" data-func="Math.sin(x*x + y*y) * 5">
-                            <div class="example-title">Ripples</div>
-                            <div class="example-formula">sin(x² + y²) × 5</div>
-                        </div>
-                        <div class="example-btn" data-func="(x*x - y*y) / 10">
-                            <div class="example-title">Saddle</div>
-                            <div class="example-formula">(x² - y²) / 10</div>
-                        </div>
-                        <div class="example-btn" data-func="Math.sqrt(x*x + y*y)">
-                            <div class="example-title">Cone</div>
-                            <div class="example-formula">√(x² + y²)</div>
-                        </div>
-                        <div class="example-btn" data-func="10 * Math.cos(Math.sqrt(x*x + y*y))">
-                            <div class="example-title">Radial Wave</div>
-                            <div class="example-formula">10 × cos(√(x² + y²))</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="information-panel">
-                <h2 class="panel-title">About 3D Graphing</h2>
-                
-                <div class="concept">
-                    <h3>Visualizing Functions in 3D Space</h3>
-                    <p>Three-dimensional graphing allows us to represent functions of two variables as surfaces in space. For a function z = f(x, y), each point (x, y) in the domain has a corresponding height z, creating a surface when all points are plotted.</p>
-                    <p>This visualization helps in understanding the behavior of multivariable functions, including their critical points, slopes, and other properties.</p>
-                </div>
-                
-                <div class="concept">
-                    <h3>Applications of 3D Graphing</h3>
-                    <p>3D graphs are used in various fields including physics (wave functions, potential surfaces), engineering (stress distribution, topographic maps), economics (utility functions, production surfaces), and computer graphics (terrain generation, special effects).</p>
-                </div>
-                
-                <div class="instructions">
-                    <h3>How to Use This Calculator</h3>
-                    <ul>
-                        <li>Enter a JavaScript math expression in terms of x and y</li>
-                        <li>Use standard Math functions like Math.sin, Math.cos, Math.sqrt</li>
-                        <li>Adjust the axis ranges to zoom in/out on different parts of the graph</li>
-                        <li>Change resolution for smoother surfaces (higher values may affect performance)</li>
-                        <li>Click and drag to rotate the graph, scroll to zoom</li>
-                        <li>Try the example functions to see different types of surfaces</li>
-                    </ul>
-                </div>
-            </div>
+            <p id="equation-display" class="mt-4 text-3xl font-mono text-gray-900">_ = _</p>
         </div>
     </div>
 
-    <div class="mobile-nav">
-        <div class="mobile-nav-buttons">
-            <button class="mobile-nav-btn active" data-tab="graph">
-                <span>📈</span>
-                <span>Graph</span>
-            </button>
-            <button class="mobile-nav-btn" data-tab="controls">
-                <span>⚙️</span>
-                <span>Controls</span>
-            </button>
-            <button class="mobile-nav-btn" data-tab="info">
-                <span>ℹ️</span>
-                <span>Info</span>
-            </button>
+    <!-- Bottom UI: Tile Controls -->
+    <div class="ui-container bottom-0 left-0 flex justify-center">
+        <div class="ui-element glassmorphism p-4 rounded-lg shadow-lg flex flex-wrap justify-center gap-2">
+            <button class="tile-btn bg-green-500 hover:bg-green-600 text-white p-2 rounded-md" data-type="x">+x</button>
+            <button class="tile-btn bg-red-500 hover:bg-red-600 text-white p-2 rounded-md" data-type="-x">-x</button>
+            <button class="tile-btn bg-yellow-400 hover:bg-yellow-500 p-2 rounded-md text-black" data-type="1">+1</button>
+            <button class="tile-btn bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-md" data-type="-1">-1</button>
         </div>
     </div>
+    
+    <!-- Message Box -->
+    <div id="message-box" class="ui-element absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-2xl text-center hidden border border-gray-200">
+        <p id="message-text" class="text-xl font-semibold text-gray-800"></p>
+        <button id="message-ok-btn" class="mt-4 btn-primary px-4 py-2 rounded-md">OK</button>
+    </div>
 
-    <script>
-        // Initialize Three.js components
-        let scene, camera, renderer, controls;
-        let graph = null;
-        
-        // Initialize the graphing calculator
+    <script type="module">
+        // --- Basic Setup ---
+        let scene, camera, renderer, orbitControls, dragControls;
+        let draggableObjects = [];
+        const canvasContainer = document.getElementById('canvas-container');
+
+        // --- Tile Constants ---
+        const TILE_DIMENSIONS = {
+            x: { width: 5, height: 1, depth: 1 },
+            '1': { width: 1, height: 1, depth: 1 }
+        };
+        const TILE_COLORS = {
+            x: 0x22c55e,  // green-500
+            '-x': 0xef4444, // red-500
+            '1': 0xfacc15,  // yellow-400
+            '-1': 0xec4899  // pink-500
+        };
+        const TILE_Y_POS = 0.5;
+        const LEFT_SIDE_X = -10;
+        const RIGHT_SIDE_X = 10;
+        const GRID_SNAP = 1;
+
+        // --- State ---
+        let tiles = [];
+
         function init() {
-            // Create scene
+            // Scene
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf8fafc);
-            
-            // Create camera
-            camera = new THREE.PerspectiveCamera(75, 
-                document.getElementById('graph-container').clientWidth / 
-                document.getElementById('graph-container').clientHeight, 
-                0.1, 1000);
-            camera.position.z = 30;
-            
-            // Create renderer
+            scene.background = new THREE.Color(0xf1f5f9); // gray-100
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+            camera.position.set(0, 15, 20);
+
+            // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(
-                document.getElementById('graph-container').clientWidth,
-                document.getElementById('graph-container').clientHeight
-            );
-            document.getElementById('graph-container').appendChild(renderer.domElement);
-            
-            // Add orbit controls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            
-            // Add lighting
-            const ambientLight = new THREE.AmbientLight(0x404040);
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            canvasContainer.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-            directionalLight.position.set(1, 1, 1);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight.position.set(10, 20, 5);
+            directionalLight.castShadow = true;
             scene.add(directionalLight);
+
+            // Controls
+            orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+            orbitControls.enableDamping = true;
             
-            // Add coordinate axes
-            const axesHelper = new THREE.AxesHelper(20);
-            scene.add(axesHelper);
+            // Drag Controls
+            dragControls = new THREE.DragControls(draggableObjects, camera, renderer.domElement);
+            dragControls.addEventListener('dragstart', () => orbitControls.enabled = false);
+            dragControls.addEventListener('dragend', (event) => {
+                snapToGrid(event.object);
+                checkForZeroPairs(event.object);
+                updateEquationDisplay();
+                orbitControls.enabled = true;
+            });
+
+            // Ground and Center Line
+            const gridHelper = new THREE.GridHelper(40, 40, 0xcccccc, 0xcccccc);
+            scene.add(gridHelper);
             
-            // Add grid helpers with a more subtle color scheme
-            const gridHelperXY = new THREE.GridHelper(40, 40, 0xcccccc, 0xe5e5e5);
-            scene.add(gridHelperXY);
-            
-            const gridHelperXZ = new THREE.GridHelper(40, 40, 0x005AA7, 0x99c2e0);
-            gridHelperXZ.rotation.x = Math.PI / 2;
-            scene.add(gridHelperXZ);
-            
-            const gridHelperYZ = new THREE.GridHelper(40, 40, 0xe53e3e, 0xf5b5b5);
-            gridHelperYZ.rotation.z = Math.PI / 2;
-            scene.add(gridHelperYZ);
-            
-            // Initial plot
-            plotFunction(document.getElementById('function-input').value);
-            
-            // Add event listeners
-            setupEventListeners();
-            
-            // Start animation loop
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0x333333, linewidth: 2 });
+            const points = [new THREE.Vector3(0, 0.01, -20), new THREE.Vector3(0, 0.01, 20)];
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            const centerLine = new THREE.Line(lineGeometry, lineMaterial);
+            scene.add(centerLine);
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            document.getElementById('set-equation-btn').addEventListener('click', setEquationFromInput);
+            document.getElementById('reset-btn').addEventListener('click', reset);
+            document.querySelectorAll('.tile-btn').forEach(btn => {
+                btn.addEventListener('click', () => addTilePair(btn.dataset.type));
+            });
+            document.getElementById('message-ok-btn').addEventListener('click', hideMessage);
+
             animate();
         }
-        
-        // Plot a function based on the input expression
-        function plotFunction(expression) {
-            // Show loading indicator
-            document.getElementById('loading').style.display = 'block';
-            
-            // Use setTimeout to allow the UI to update before the heavy computation
-            setTimeout(() => {
-                // Remove previous graph if it exists
-                if (graph) {
-                    scene.remove(graph);
-                }
-                
-                const xRange = parseInt(document.getElementById('x-range').value);
-                const yRange = parseInt(document.getElementById('y-range').value);
-                const resolution = parseInt(document.getElementById('resolution').value);
-                
-                // Create geometry for the surface
-                const geometry = new THREE.BufferGeometry();
-                const vertices = [];
-                const colors = [];
-                
-                // Create a color gradient from blue to red
-                const colorLow = new THREE.Color(0x005AA7); // Dark blue
-                const colorMid = new THREE.Color(0x38b2ac); // Teal
-                const colorHigh = new THREE.Color(0xe53e3e); // Red
-                
-                // Evaluate the function at each point
-                for (let i = 0; i <= resolution; i++) {
-                    const x = (i / resolution) * 2 * xRange - xRange;
-                    
-                    for (let j = 0; j <= resolution; j++) {
-                        const y = (j / resolution) * 2 * yRange - yRange;
-                        
-                        try {
-                            // Evaluate the function (using eval is acceptable here since it's a controlled environment)
-                            const z = eval(expression);
-                            
-                            vertices.push(x, y, z);
-                            
-                            // Calculate color based on height with three-color gradient
-                            let t, color;
-                            if (z < 0) {
-                                t = (z + yRange) / yRange;
-                                color = new THREE.Color().lerpColors(colorLow, colorMid, t);
-                            } else {
-                                t = z / yRange;
-                                color = new THREE.Color().lerpColors(colorMid, colorHigh, t);
-                            }
-                            colors.push(color.r, color.g, color.b);
-                        } catch (e) {
-                            console.error("Error evaluating function:", e);
-                            document.getElementById('loading').style.display = 'none';
-                            return;
-                        }
-                    }
-                }
-                
-                // Create faces
-                const indices = [];
-                for (let i = 0; i < resolution; i++) {
-                    for (let j = 0; j < resolution; j++) {
-                        const a = i * (resolution + 1) + j;
-                        const b = a + 1;
-                        const c = a + (resolution + 1);
-                        const d = c + 1;
-                        
-                        indices.push(a, b, c);
-                        indices.push(b, d, c);
-                    }
-                }
-                
-                // Set geometry attributes
-                geometry.setIndex(indices);
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-                geometry.computeVertexNormals();
-                
-                // Create material
-                const material = new THREE.MeshPhongMaterial({
-                    vertexColors: true,
-                    side: THREE.DoubleSide,
-                    shininess: 80,
-                    wireframe: false
-                });
-                
-                // Create mesh and add to scene
-                graph = new THREE.Mesh(geometry, material);
-                scene.add(graph);
-                
-                // Hide loading indicator
-                document.getElementById('loading').style.display = 'none';
-            }, 100);
-        }
-        
-        // Animation loop
+
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();
+            orbitControls.update();
             renderer.render(scene, camera);
         }
-        
-        // Set up event listeners for UI controls
-        function setupEventListeners() {
-            // Plot button
-            document.getElementById('plot-btn').addEventListener('click', function() {
-                plotFunction(document.getElementById('function-input').value);
-            });
+
+        function onWindowResize() {
+            camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        }
+
+        // --- Tile Management ---
+        function createTile(type, position) {
+            const isX = type.includes('x');
+            const dim = isX ? TILE_DIMENSIONS.x : TILE_DIMENSIONS['1'];
+            const geometry = new THREE.BoxGeometry(dim.width, dim.height, dim.depth);
+            const material = new THREE.MeshStandardMaterial({ color: TILE_COLORS[type], roughness: 0.5, metalness: 0.1 });
+            const mesh = new THREE.Mesh(geometry, material);
             
-            // Range sliders
-            document.getElementById('x-range').addEventListener('input', function() {
-                document.getElementById('x-value').textContent = this.value;
-                plotFunction(document.getElementById('function-input').value);
-            });
+            mesh.position.copy(position);
+            mesh.castShadow = true;
+            mesh.userData = { type: type, value: getValueFromType(type) };
             
-            document.getElementById('y-range').addEventListener('input', function() {
-                document.getElementById('y-value').textContent = this.value;
-                plotFunction(document.getElementById('function-input').value);
-            });
+            scene.add(mesh);
+            tiles.push(mesh);
+            draggableObjects.push(mesh);
             
-            document.getElementById('z-range').addEventListener('input', function() {
-                document.getElementById('z-value').textContent = this.value;
-                plotFunction(document.getElementById('function-input').value);
-            });
-            
-            document.getElementById('resolution').addEventListener('input', function() {
-                document.getElementById('resolution-value').textContent = this.value;
-                plotFunction(document.getElementById('function-input').value);
-            });
-            
-            // Reset view button
-            document.getElementById('reset-view-btn').addEventListener('click', function() {
-                controls.reset();
-            });
-            
-            // Clear button
-            document.getElementById('clear-btn').addEventListener('click', function() {
-                if (graph) {
-                    scene.remove(graph);
-                    graph = null;
-                }
-            });
-            
-            // Example buttons
-            document.querySelectorAll('.example-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const func = this.getAttribute('data-func');
-                    document.getElementById('function-input').value = func;
-                    plotFunction(func);
-                });
-            });
-            
-            // Mobile navigation
-            document.querySelectorAll('.mobile-nav-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const tab = this.getAttribute('data-tab');
-                    
-                    // Update active button
-                    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
-                        btn.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    // Scroll to section
-                    if (tab === 'graph') {
-                        document.querySelector('.graphing-area').scrollIntoView({behavior: 'smooth'});
-                    } else if (tab === 'controls') {
-                        document.querySelector('.controls-panel').scrollIntoView({behavior: 'smooth'});
-                    } else if (tab === 'info') {
-                        document.querySelector('.information-panel').scrollIntoView({behavior: 'smooth'});
-                    }
-                });
-            });
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                const container = document.getElementById('graph-container');
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            });
+            return mesh;
         }
         
-        // Initialize the calculator when the page loads
-        window.addEventListener('load', init);
+        function getValueFromType(type) {
+            switch (type) {
+                case 'x': return { x: 1, const: 0 };
+                case '-x': return { x: -1, const: 0 };
+                case '1': return { x: 0, const: 1 };
+                case '-1': return { x: 0, const: -1 };
+                default: return { x: 0, const: 0 };
+            }
+        }
+
+        function removeTile(tile) {
+            scene.remove(tile);
+            tile.geometry.dispose();
+            tile.material.dispose();
+            
+            // Remove from arrays
+            let index = tiles.indexOf(tile);
+            if (index > -1) tiles.splice(index, 1);
+            
+            index = draggableObjects.indexOf(tile);
+            if (index > -1) draggableObjects.splice(index, 1);
+        }
+
+        function snapToGrid(tile) {
+            tile.position.x = Math.round(tile.position.x / GRID_SNAP) * GRID_SNAP;
+            tile.position.z = Math.round(tile.position.z / GRID_SNAP) * GRID_SNAP;
+            tile.position.y = TILE_Y_POS;
+
+            // Keep tiles on their own side
+            if (tile.position.x === 0) {
+                 tile.position.x = tile.userData.initialX < 0 ? -1 : 1;
+            }
+            if (tile.userData.initialX < 0 && tile.position.x > 0) {
+                tile.position.x = -1;
+            } else if (tile.userData.initialX > 0 && tile.position.x < 0) {
+                tile.position.x = 1;
+            }
+        }
+
+        // --- Equation Logic ---
+        function parseEquation(eqString) {
+            try {
+                const sides = eqString.replace(/\s/g, '').split('=');
+                if (sides.length !== 2) return null;
+
+                const parseSide = (sideStr) => {
+                    let x = 0;
+                    let constant = 0;
+                    const terms = sideStr.match(/([+-]?[^-+]+)/g) || [];
+                    terms.forEach(term => {
+                        if (term.includes('x')) {
+                            if (term === 'x' || term === '+x') x += 1;
+                            else if (term === '-x') x -= 1;
+                            else x += parseInt(term.replace('x', ''), 10);
+                        } else {
+                            constant += parseInt(term, 10);
+                        }
+                    });
+                    return { x, const: constant };
+                };
+
+                return {
+                    left: parseSide(sides[0]),
+                    right: parseSide(sides[1])
+                };
+            } catch (error) {
+                console.error("Invalid equation format", error);
+                return null;
+            }
+        }
+
+        function setEquationFromInput() {
+            const input = document.getElementById('equation-input').value;
+            if (!input) {
+                showMessage("Please enter an equation.");
+                return;
+            }
+            const parsed = parseEquation(input);
+            if (!parsed) {
+                showMessage("Invalid equation format. Use 'ax + b = cx + d'.");
+                return;
+            }
+            
+            reset();
+            
+            generateTilesForSide(parsed.left, LEFT_SIDE_X);
+            generateTilesForSide(parsed.right, RIGHT_SIDE_X);
+            
+            updateEquationDisplay();
+        }
+
+        function generateTilesForSide(side, xOffset) {
+            // Generate x tiles
+            for (let i = 0; i < Math.abs(side.x); i++) {
+                const type = side.x > 0 ? 'x' : '-x';
+                const pos = new THREE.Vector3(xOffset + (Math.random() - 0.5) * 5, TILE_Y_POS, (i - Math.abs(side.x)/2) * 2);
+                const tile = createTile(type, pos);
+                tile.userData.initialX = xOffset;
+            }
+            // Generate constant tiles
+            for (let i = 0; i < Math.abs(side.const); i++) {
+                const type = side.const > 0 ? '1' : '-1';
+                const pos = new THREE.Vector3(xOffset + (Math.random() - 0.5) * 5 + 5, TILE_Y_POS, (i - Math.abs(side.const)/2) * 2);
+                const tile = createTile(type, pos);
+                tile.userData.initialX = xOffset;
+            }
+        }
+
+        function updateEquationDisplay() {
+            let left = { x: 0, const: 0 };
+            let right = { x: 0, const: 0 };
+
+            tiles.forEach(tile => {
+                const side = tile.position.x < 0 ? left : right;
+                side.x += tile.userData.value.x;
+                side.const += tile.userData.value.const;
+            });
+
+            const formatSide = (side) => {
+                let parts = [];
+                if (side.x !== 0) parts.push(`${side.x}x`);
+                if (side.const !== 0) parts.push(side.const > 0 ? `+ ${side.const}` : `- ${Math.abs(side.const)}`);
+                if (parts.length === 0) return '0';
+                return parts.join(' ').replace(/^\+ /, '');
+            };
+
+            document.getElementById('equation-display').textContent = `${formatSide(left)} = ${formatSide(right)}`;
+            
+            // Check for solution
+            if ((left.x === 0 && right.const === 0 && right.x !== 0) || (right.x === 0 && left.const === 0 && left.x !== 0)) {
+                const xSide = left.x !== 0 ? left : right;
+                const constSide = right.x === 0 ? right : left;
+                if (xSide.x !== 0 && constSide.const % xSide.x === 0) {
+                     const solution = constSide.const / xSide.x;
+                     showMessage(`Solved! x = ${solution}`);
+                }
+            }
+        }
+        
+        function addTilePair(type) {
+            // Add a tile to the left side
+            const leftPos = new THREE.Vector3(LEFT_SIDE_X + (Math.random() - 0.5) * 5, TILE_Y_POS, (Math.random() - 0.5) * 10);
+            const leftTile = createTile(type, leftPos);
+            leftTile.userData.initialX = LEFT_SIDE_X;
+
+            // Add a tile to the right side
+            const rightPos = new THREE.Vector3(RIGHT_SIDE_X + (Math.random() - 0.5) * 5, TILE_Y_POS, (Math.random() - 0.5) * 10);
+            const rightTile = createTile(type, rightPos);
+            rightTile.userData.initialX = RIGHT_SIDE_X;
+            
+            updateEquationDisplay();
+        }
+
+        function checkForZeroPairs(movedTile) {
+            const oppositeType = { 'x': '-x', '-x': 'x', '1': '-1', '-1': '1' };
+            const typeToCheck = oppositeType[movedTile.userData.type];
+            
+            const sideTiles = tiles.filter(t => (t.position.x < 0 && movedTile.position.x < 0) || (t.position.x > 0 && movedTile.position.x > 0));
+
+            for (const tile of sideTiles) {
+                if (tile !== movedTile && tile.userData.type === typeToCheck) {
+                    if (movedTile.position.distanceTo(tile.position) < 1.5) {
+                        removeTile(movedTile);
+                        removeTile(tile);
+                        // Important: break loop after removing tiles as the array is modified
+                        return; 
+                    }
+                }
+            }
+        }
+
+        function reset() {
+            // Clear all tiles
+            [...tiles].forEach(tile => removeTile(tile));
+            // Ensure draggableObjects is also cleared
+            draggableObjects.length = 0;
+            updateEquationDisplay();
+        }
+        
+        // --- UI Helpers ---
+        function showMessage(text) {
+            const msgBox = document.getElementById('message-box');
+            document.getElementById('message-text').textContent = text;
+            msgBox.classList.remove('hidden');
+        }
+
+        function hideMessage() {
+            document.getElementById('message-box').classList.add('hidden');
+        }
+        
+        // --- Start ---
+        init();
+        // Set a default equation for demonstration
+        document.getElementById('equation-input').value = '2x + 3 = x + 5';
+        setEquationFromInput();
+
     </script>
 </body>
 </html>

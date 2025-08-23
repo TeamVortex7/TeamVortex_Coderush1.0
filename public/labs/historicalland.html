@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Historical Landmarks Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .landmark-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: auto;
+        }
+        
+        .landmark-selector h2 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .landmark-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .landmark-btn {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .landmark-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .landmark-btn.active {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            pointer-events: auto;
+            transform: translateX(100%);
+            transition: transform 0.5s ease;
+        }
+        
+        .info-panel.visible {
+            transform: translateX(0);
+        }
+        
+        .info-panel h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .info-section {
+            margin-bottom: 20px;
+        }
+        
+        .info-section h4 {
+            color: #3498db;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(52, 152, 219, 0.3);
+            padding-bottom: 4px;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: auto;
+        }
+        
+        .controls h4 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .control-item {
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .reconstruction-challenge {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: auto;
+            max-width: 300px;
+        }
+        
+        .challenge-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .challenge-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+        
+        .hotspot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ffd700;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+            pointer-events: auto;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 200px;
+            transform: translate(-50%, -100%);
+            margin-top: -10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container"></div>
+        
+        <div id="ui-overlay">
+            <div class="landmark-selector">
+                <h2>🏛️ Historical Landmarks</h2>
+                <div class="landmark-buttons">
+                    <button class="landmark-btn active" data-landmark="pyramid">Great Pyramid</button>
+                    <button class="landmark-btn" data-landmark="parthenon">Parthenon</button>
+                    <button class="landmark-btn" data-landmark="colosseum">Colosseum</button>
+                    <button class="landmark-btn" data-landmark="castle">Medieval Castle</button>
+                </div>
+            </div>
+            
+            <div class="info-panel" id="info-panel">
+                <h3 id="landmark-title">Great Pyramid of Giza</h3>
+                <div class="info-section">
+                    <h4>📅 Historical Period</h4>
+                    <p id="period-info">Built around 2580-2510 BC during Egypt's Old Kingdom</p>
+                </div>
+                <div class="info-section">
+                    <h4>🏗️ Construction Facts</h4>
+                    <p id="construction-info">Originally 146.5m tall, made from 2.3 million stone blocks, each weighing 2.5-15 tons</p>
+                </div>
+                <div class="info-section">
+                    <h4>🌍 Cultural Impact</h4>
+                    <p id="cultural-info">Demonstrated pharaoh's divine power, advanced Egyptian mathematics and engineering, influenced pyramid construction worldwide</p>
+                </div>
+                <div class="info-section">
+                    <h4>🛡️ Defense & Society</h4>
+                    <p id="defense-info">Symbol of eternal power, complex internal chambers protected treasures, required massive organized labor force</p>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <h4>🎮 Controls</h4>
+                <div class="control-item">🖱️ Left Click + Drag: Rotate</div>
+                <div class="control-item">🖱️ Right Click + Drag: Pan</div>
+                <div class="control-item">📜 Scroll: Zoom</div>
+                <div class="control-item">✨ Click hotspots for details</div>
+            </div>
+            
+            <div class="reconstruction-challenge">
+                <h4>🔨 Reconstruction Challenge</h4>
+                <p id="challenge-text">Imagine rebuilding the Great Pyramid today. What modern technologies would you use?</p>
+                <button class="challenge-btn" onclick="showChallenge()">Start Challenge</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, currentLandmark;
+        let landmarks = {};
+        let hotspots = [];
+        let isMouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        
+        // Landmark data
+        const landmarkData = {
+            pyramid: {
+                title: "Great Pyramid of Giza",
+                period: "Built around 2580-2510 BC during Egypt's Old Kingdom",
+                construction: "Originally 146.5m tall, made from 2.3 million stone blocks, each weighing 2.5-15 tons",
+                cultural: "Demonstrated pharaoh's divine power, advanced Egyptian mathematics and engineering, influenced pyramid construction worldwide",
+                defense: "Symbol of eternal power, complex internal chambers protected treasures, required massive organized labor force",
+                challenge: "Imagine rebuilding the Great Pyramid today. What modern technologies would you use? Consider cranes, computer modeling, and logistics.",
+                hotspots: [
+                    {x: 0, y: 50, z: 0, info: "Apex: Once topped with a golden pyramidion, symbolizing the pharaoh's connection to the sun god Ra"},
+                    {x: -30, y: 0, z: 30, info: "Entrance: Hidden on the north face, designed to confuse tomb robbers"},
+                    {x: 0, y: -10, z: 0, info: "Base: Covers 13 acres, aligned precisely with cardinal directions"}
+                ]
+            },
+            parthenon: {
+                title: "Parthenon",
+                period: "Built 447-432 BC during Athens' Golden Age",
+                construction: "Pentelic marble temple, 69.5m long, featuring 46 outer columns and advanced optical illusions",
+                cultural: "Symbol of democracy and intellectual achievement, housed 12m gold statue of Athena, inspired neoclassical architecture",
+                defense: "Located on fortified Acropolis, served as treasury, represented Athenian naval power and wealth",
+                challenge: "Design a modern democratic building inspired by the Parthenon. How would you incorporate ancient Greek principles?",
+                hotspots: [
+                    {x: 0, y: 15, z: 0, info: "Pediment: Depicted birth of Athena, showing mythological scenes in marble"},
+                    {x: -25, y: 5, z: 0, info: "Doric Columns: 46 columns with subtle entasis (swelling) to correct optical illusions"},
+                    {x: 0, y: 0, z: 0, info: "Cella: Inner chamber that housed the massive gold and ivory statue of Athena"}
+                ]
+            },
+            colosseum: {
+                title: "Colosseum",
+                period: "Built 70-80 AD during the Flavian Dynasty",
+                construction: "Four-story amphitheater, 189m long, could seat 50,000-80,000 spectators with complex underground systems",
+                cultural: "Showcased Roman engineering, provided 'bread and circuses' to masses, symbol of imperial power",
+                defense: "Massive structure demonstrated Roman might, controlled population through entertainment, showed conquered peoples Roman dominance",
+                challenge: "Plan a modern sports stadium using Roman engineering principles. How would you improve crowd flow and safety?",
+                hotspots: [
+                    {x: 0, y: 20, z: 0, info: "Upper Tiers: Seating arranged by social class, with awnings for sun protection"},
+                    {x: 0, y: -5, z: 0, info: "Arena Floor: Covered complex underground tunnels, elevators, and chambers for gladiators and animals"},
+                    {x: 30, y: 10, z: 0, info: "Arches: 80 entrance arches allowed efficient crowd movement, numbered for ticket holders"}
+                ]
+            },
+            castle: {
+                title: "Medieval Castle",
+                period: "Built 1000-1500 AD during the Medieval period",
+                construction: "Stone keep with curtain walls, towers, gatehouse, designed for both residence and fortress",
+                cultural: "Center of feudal power, controlled trade routes, symbol of noble authority and protection",
+                defense: "High walls, narrow windows, murder holes, moat, drawbridge - all designed to withstand sieges and protect inhabitants",
+                challenge: "Design a modern secure compound using medieval castle principles. What technologies would replace traditional defenses?",
+                hotspots: [
+                    {x: 0, y: 25, z: 0, info: "Keep: Strongest tower, last line of defense, contained lord's living quarters"},
+                    {x: -20, y: 10, z: 20, info: "Gatehouse: Heavily fortified entrance with portcullis, murder holes, and guard chambers"},
+                    {x: 0, y: 15, z: 0, info: "Curtain Wall: High defensive walls connecting towers, with battlements for archers"}
+                ]
+            }
+        };
+
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(50, 30, 50);
+            camera.lookAt(0, 0, 0);
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(50, 50, 25);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            
+            // Ground
+            const groundGeometry = new THREE.PlaneGeometry(200, 200);
+            const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x8B7355 });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            
+            // Create landmarks
+            createLandmarks();
+            
+            // Set initial landmark
+            setLandmark('pyramid');
+            
+            // Event listeners
+            setupEventListeners();
+            
+            // Start animation loop
+            animate();
+        }
+        
+        function createLandmarks() {
+            // Great Pyramid
+            landmarks.pyramid = new THREE.Group();
+            const pyramidGeometry = new THREE.ConeGeometry(25, 40, 4);
+            const pyramidMaterial = new THREE.MeshLambertMaterial({ color: 0xDEB887 });
+            const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
+            pyramid.position.y = 20;
+            pyramid.castShadow = true;
+            pyramid.rotation.y = Math.PI / 4;
+            landmarks.pyramid.add(pyramid);
+            
+            // Parthenon
+            landmarks.parthenon = new THREE.Group();
+            // Base platform
+            const baseGeometry = new THREE.BoxGeometry(50, 2, 25);
+            const baseMaterial = new THREE.MeshLambertMaterial({ color: 0xF5F5DC });
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.y = 1;
+            landmarks.parthenon.add(base);
+            
+            // Columns
+            for (let i = 0; i < 8; i++) {
+                const columnGeometry = new THREE.CylinderGeometry(1, 1, 12, 8);
+                const columnMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFF0 });
+                const column = new THREE.Mesh(columnGeometry, columnMaterial);
+                column.position.set(-21 + i * 6, 8, 10);
+                column.castShadow = true;
+                landmarks.parthenon.add(column);
+                
+                const column2 = new THREE.Mesh(columnGeometry, columnMaterial);
+                column2.position.set(-21 + i * 6, 8, -10);
+                column2.castShadow = true;
+                landmarks.parthenon.add(column2);
+            }
+            
+            // Roof
+            const roofGeometry = new THREE.BoxGeometry(52, 3, 27);
+            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0xDEB887 });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.y = 16;
+            landmarks.parthenon.add(roof);
+            
+            // Colosseum
+            landmarks.colosseum = new THREE.Group();
+            const outerWallGeometry = new THREE.CylinderGeometry(35, 35, 20, 32, 1, true);
+            const wallMaterial = new THREE.MeshLambertMaterial({ color: 0xD2B48C });
+            const outerWall = new THREE.Mesh(outerWallGeometry, wallMaterial);
+            outerWall.position.y = 10;
+            outerWall.castShadow = true;
+            landmarks.colosseum.add(outerWall);
+            
+            const innerWallGeometry = new THREE.CylinderGeometry(25, 25, 18, 32, 1, true);
+            const innerWall = new THREE.Mesh(innerWallGeometry, wallMaterial);
+            innerWall.position.y = 9;
+            landmarks.colosseum.add(innerWall);
+            
+            // Arches
+            for (let i = 0; i < 16; i++) {
+                const angle = (i / 16) * Math.PI * 2;
+                const archGeometry = new THREE.BoxGeometry(2, 8, 2);
+                const arch = new THREE.Mesh(archGeometry, wallMaterial);
+                arch.position.set(Math.cos(angle) * 30, 6, Math.sin(angle) * 30);
+                landmarks.colosseum.add(arch);
+            }
+            
+            // Medieval Castle
+            landmarks.castle = new THREE.Group();
+            // Main keep
+            const keepGeometry = new THREE.BoxGeometry(15, 30, 15);
+            const stoneMaterial = new THREE.MeshLambertMaterial({ color: 0x696969 });
+            const keep = new THREE.Mesh(keepGeometry, stoneMaterial);
+            keep.position.y = 15;
+            keep.castShadow = true;
+            landmarks.castle.add(keep);
+            
+            // Towers
+            for (let i = 0; i < 4; i++) {
+                const towerGeometry = new THREE.CylinderGeometry(4, 4, 25, 8);
+                const tower = new THREE.Mesh(towerGeometry, stoneMaterial);
+                const angle = (i / 4) * Math.PI * 2;
+                tower.position.set(Math.cos(angle) * 20, 12.5, Math.sin(angle) * 20);
+                tower.castShadow = true;
+                landmarks.castle.add(tower);
+            }
+            
+            // Walls
+            const wallGeometry = new THREE.BoxGeometry(45, 12, 3);
+            const walls = [
+                { pos: [0, 6, 22.5], rot: [0, 0, 0] },
+                { pos: [0, 6, -22.5], rot: [0, 0, 0] },
+                { pos: [22.5, 6, 0], rot: [0, Math.PI/2, 0] },
+                { pos: [-22.5, 6, 0], rot: [0, Math.PI/2, 0] }
+            ];
+            
+            walls.forEach(wall => {
+                const wallMesh = new THREE.Mesh(wallGeometry, stoneMaterial);
+                wallMesh.position.set(...wall.pos);
+                wallMesh.rotation.set(...wall.rot);
+                wallMesh.castShadow = true;
+                landmarks.castle.add(wallMesh);
+            });
+        }
+        
+        function setLandmark(landmarkType) {
+            // Clear current landmark
+            if (currentLandmark) {
+                scene.remove(currentLandmark);
+            }
+            
+            // Clear hotspots
+            clearHotspots();
+            
+            // Add new landmark
+            currentLandmark = landmarks[landmarkType];
+            scene.add(currentLandmark);
+            
+            // Update UI
+            updateInfoPanel(landmarkType);
+            updateHotspots(landmarkType);
+            
+            // Update active button
+            document.querySelectorAll('.landmark-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-landmark="${landmarkType}"]`).classList.add('active');
+            
+            // Show info panel
+            document.getElementById('info-panel').classList.add('visible');
+        }
+        
+        function updateInfoPanel(landmarkType) {
+            const data = landmarkData[landmarkType];
+            document.getElementById('landmark-title').textContent = data.title;
+            document.getElementById('period-info').textContent = data.period;
+            document.getElementById('construction-info').textContent = data.construction;
+            document.getElementById('cultural-info').textContent = data.cultural;
+            document.getElementById('defense-info').textContent = data.defense;
+            document.getElementById('challenge-text').textContent = data.challenge;
+        }
+        
+        function updateHotspots(landmarkType) {
+            const data = landmarkData[landmarkType];
+            data.hotspots.forEach((hotspotData, index) => {
+                createHotspot(hotspotData, index);
+            });
+        }
+        
+        function createHotspot(hotspotData, index) {
+            const hotspot = document.createElement('div');
+            hotspot.className = 'hotspot';
+            hotspot.dataset.info = hotspotData.info;
+            
+            // Convert 3D position to screen coordinates
+            const vector = new THREE.Vector3(hotspotData.x, hotspotData.y, hotspotData.z);
+            vector.project(camera);
+            
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+            
+            hotspot.style.left = x + 'px';
+            hotspot.style.top = y + 'px';
+            
+            hotspot.addEventListener('click', (e) => {
+                showTooltip(e, hotspotData.info);
+            });
+            
+            hotspot.addEventListener('mouseenter', (e) => {
+                showTooltip(e, hotspotData.info);
+            });
+            
+            hotspot.addEventListener('mouseleave', hideTooltip);
+            
+            document.getElementById('ui-overlay').appendChild(hotspot);
+            hotspots.push(hotspot);
+        }
+        
+        function clearHotspots() {
+            hotspots.forEach(hotspot => hotspot.remove());
+            hotspots = [];
+            hideTooltip();
+        }
+        
+        function showTooltip(e, text) {
+            hideTooltip();
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = text;
+            tooltip.style.left = e.pageX + 'px';
+            tooltip.style.top = e.pageY + 'px';
+            document.body.appendChild(tooltip);
+        }
+        
+        function hideTooltip() {
+            const existing = document.querySelector('.tooltip');
+            if (existing) existing.remove();
+        }
+        
+        function showChallenge() {
+            const landmarkType = document.querySelector('.landmark-btn.active').dataset.landmark;
+            const data = landmarkData[landmarkType];
+            alert(`🔨 Reconstruction Challenge:\n\n${data.challenge}\n\nThink about:\n• Modern materials vs traditional\n• Construction timeline\n• Environmental considerations\n• Cultural preservation\n• Cost and logistics`);
+        }
+        
+        function setupEventListeners() {
+            // Landmark selection
+            document.querySelectorAll('.landmark-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setLandmark(btn.dataset.landmark);
+                });
+            });
+            
+            // Mouse controls
+            let mouseX = 0, mouseY = 0;
+            let isLeftMouseDown = false;
+            let isRightMouseDown = false;
+            
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                if (e.button === 0) isLeftMouseDown = true;
+                if (e.button === 2) isRightMouseDown = true;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            renderer.domElement.addEventListener('mouseup', (e) => {
+                if (e.button === 0) isLeftMouseDown = false;
+                if (e.button === 2) isRightMouseDown = false;
+            });
+            
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (isLeftMouseDown) {
+                    const deltaX = e.clientX - mouseX;
+                    const deltaY = e.clientY - mouseY;
+                    
+                    const spherical = new THREE.Spherical();
+                    spherical.setFromVector3(camera.position);
+                    spherical.theta -= deltaX * 0.01;
+                    spherical.phi += deltaY * 0.01;
+                    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+                    
+                    camera.position.setFromSpherical(spherical);
+                    camera.lookAt(0, 0, 0);
+                }
+                
+                if (isRightMouseDown) {
+                    const deltaX = e.clientX - mouseX;
+                    const deltaY = e.clientY - mouseY;
+                    
+                    const distance = camera.position.length();
+                    const panSpeed = distance * 0.001;
+                    
+                    camera.position.x += deltaX * panSpeed;
+                    camera.position.z += deltaY * panSpeed;
+                }
+                
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                // Update hotspot positions
+                updateHotspotPositions();
+            });
+            
+            renderer.domElement.addEventListener('wheel', (e) => {
+                const distance = camera.position.length();
+                const zoomSpeed = distance * 0.1;
+                const direction = camera.position.clone().normalize();
+                
+                if (e.deltaY > 0) {
+                    camera.position.add(direction.multiplyScalar(zoomSpeed));
+                } else {
+                    camera.position.sub(direction.multiplyScalar(zoomSpeed));
+                }
+                
+                camera.position.setLength(Math.max(10, Math.min(200, camera.position.length())));
+                updateHotspotPositions();
+            });
+            
+            renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+            
+            // Window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                updateHotspotPositions();
+            });
+        }
+        
+        function updateHotspotPositions() {
+            const landmarkType = document.querySelector('.landmark-btn.active').dataset.landmark;
+            const data = landmarkData[landmarkType];
+            
+            hotspots.forEach((hotspot, index) => {
+                const hotspotData = data.hotspots[index];
+                const vector = new THREE.Vector3(hotspotData.x, hotspotData.y, hotspotData.z);
+                vector.project(camera);
+                
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+                
+                hotspot.style.left = x + 'px';
+                hotspot.style.top = y + 'px';
+                
+                // Hide hotspots that are behind the camera
+                hotspot.style.display = vector.z > 1 ? 'none' : 'block';
+            });
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate current landmark slowly
+            if (currentLandmark) {
+                currentLandmark.rotation.y += 0.005;
+            }
+            
+            updateHotspotPositions();
+            renderer.render(scene, camera);
+        }
+        
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>

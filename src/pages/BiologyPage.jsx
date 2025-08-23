@@ -9,19 +9,13 @@ export default function BiologyPage() {
             id: 1, 
             title: "DNA Replication Simulation", 
             description: "Take control of the replication process by unzipping the DNA double helix and correctly matching the base pairs (A-T, G-C) to build a perfect copy of the genetic code.",
-            url: "/labs/chemistry-titration.html" 
+            url: "/labs/dnareplication.html" 
         },
         { 
             id: 2, 
-            title: "Chemical Bonding", 
-            description: "Explore ionic, covalent, and metallic bonds in an interactive 3D environment.",
-            url: "/labs/chemistry-bonding.html" 
-        },
-        { 
-            id: 3, 
-            title: "Periodic Table Explorer", 
-            description: "An in-depth look at the properties and trends of the elements.",
-            url: "/labs/chemistry-periodic-table.html" 
+            title: "Micro Biology", 
+            description: "Step into a virtual lab and use a high-powered microscope to identify different bacteria, viruses, and fungi. Run experiments to see how they grow, multiply, and interact with their environment.",
+            url: "/labs/microbiology.html" 
         },
     ];
 

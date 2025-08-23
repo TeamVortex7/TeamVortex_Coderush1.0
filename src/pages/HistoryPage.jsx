@@ -9,7 +9,12 @@ export default function HistoryPage() {
             id: 1, 
             title: "Historical Landmarks", 
             description: "Step back in time and walk through photorealistic reconstructions of the world's most iconic landmarks. Explore ancient ruins, uncover their hidden secrets, and witness pivotal historical moments as if you were actually there.",
-            url: "/labs/.html" 
+            url: "/labs/historicalland.html" 
+        },        { 
+            id: 2, 
+            title: "Historical Plane", 
+            description: "Climb into the cockpit of iconic aircraft from throughout history. Take the controls and pilot these legendary planes through the pivotal missions that shaped the modern world.",
+            url: "/labs/historicalplane.html" 
         },
     ];
 

@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ohm's Law Circuit Simulation - Physics Lab</title>
+    <style>
+        :root {
+            --color-primary: #005AA7;
+            --color-secondary: #2C7DB7;
+            --color-accent: #FF9900;
+            --color-bg: #f8fafc;
+            --color-card: #ffffff;
+            --color-text: #1e293b;
+            --color-border: #e2e8f0;
+            --gradient-primary: linear-gradient(135deg, #005AA7 0%, #2C7DB7 100%);
+            --gradient-secondary: linear-gradient(135deg, #2C7DB7 0%, #63B3ED 100%);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .lab-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .lab-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .lab-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .lab-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .circuit-section, .controls-section, .measurements-section, .education-section {
+            background-color: var(--color-card);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-border);
+        }
+
+        h2 {
+            color: var(--color-primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        h3 {
+            color: var(--color-secondary);
+            margin-bottom: 15px;
+        }
+
+        /* Circuit Styles */
+        .circuit-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: #f1f9ff;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .circuit-svg {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+        }
+
+        .wire {
+            stroke: #4a5568;
+            stroke-width: 3;
+        }
+
+        .battery, .resistor, .ammeter, .voltmeter {
+            transition: all 0.3s ease;
+        }
+
+        .battery text, .resistor text, .ammeter text, .voltmeter text {
+            font-weight: bold;
+            user-select: none;
+        }
+
+        /* Controls Styles */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--gradient-secondary);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .value-display {
+            font-weight: 600;
+            color: var(--color-primary);
+            font-size: 1.1rem;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn--primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn--secondary {
+            background: #e2e8f0;
+            color: var(--color-text);
+        }
+
+        .btn--outline {
+            background: transparent;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Measurements Styles */
+        .measurement-displays {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .measurement-card {
+            background: var(--gradient-secondary);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s ease;
+        }
+
+        .measurement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .measurement-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .measurement-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .measurement-unit {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .power-card {
+            background: var(--gradient-primary);
+        }
+
+        /* Education Section Styles */
+        .education-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .ohms-law-triangle, .formulas-section, .tips-section {
+            background-color: #f1f9ff;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .triangle-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .triangle-svg {
+            width: 180px;
+            height: 180px;
+        }
+
+        .formula-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .formula-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .formula {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 8px;
+        }
+
+        .formula-desc {
+            font-size: 0.95rem;
+            color: var(--color-text);
+            opacity: 0.8;
+        }
+
+        .tips-list {
+            padding-left: 20px;
+        }
+
+        .tips-list li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        /* Current Flow Animation */
+        .current-flow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .electron {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+            transition: all 0.1s ease;
+            z-index: 15;
+        }
+
+        .electron.moving {
+            animation: glow 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { 
+                box-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 0 12px rgba(255, 215, 0, 1);
+                transform: scale(1.1);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .lab-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .measurement-displays {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .education-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Hidden class for toggle */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="lab-header">
+            <h1>Ohm's Law Circuit Simulation</h1>
+            <p>Interactive Physics Lab - Explore the relationship between Voltage, Current, and Resistance</p>
+        </header>
+
+        <div class="lab-content">
+            <!-- Circuit Diagram Section -->
+            <div class="circuit-section">
+                <h2>Circuit Diagram</h2>
+                <div class="circuit-container" id="circuitContainer">
+                    <svg class="circuit-svg" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg" id="circuitSvg">
+                        <!-- Circuit Wires -->
+                        <line x1="50" y1="100" x2="150" y2="100" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="450" y1="100" x2="550" y2="100" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="50" y1="300" x2="550" y2="300" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="50" y1="100" x2="50" y2="300" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="550" y1="100" x2="550" y2="300" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="150" y1="100" x2="150" y2="150" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="450" y1="100" x2="450" y2="150" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="150" y1="250" x2="150" y2="300" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="450" y1="250" x2="450" y2="300" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="150" y1="150" x2="450" y2="150" stroke="#4a5568" stroke-width="3" class="wire"/>
+                        <line x1="150" y1="250" x2="450" y2="250" stroke="#4a5568" stroke-width="3" class="wire"/>
+
+                        <!-- Battery -->
+                        <g class="battery">
+                            <line x1="40" y1="180" x2="60" y2="180" stroke="#005AA7" stroke-width="6"/>
+                            <line x1="40" y1="220" x2="60" y2="220" stroke="#005AA7" stroke-width="3"/>
+                            <text x="30" y="170" font-size="12" fill="#005AA7">+</text>
+                            <text x="30" y="235" font-size="12" fill="#005AA7">-</text>
+                            <text x="15" y="200" font-size="14" fill="#005AA7" font-weight="bold">V</text>
+                        </g>
+
+                        <!-- Resistor -->
+                        <g class="resistor">
+                            <rect x="280" y="140" width="40" height="20" fill="none" stroke="#005AA7" stroke-width="2"/>
+                            <path d="M280,150 L285,140 L295,160 L305,140 L315,160 L320,150" fill="none" stroke="#005AA7" stroke-width="2"/>
+                            <text x="300" y="135" text-anchor="middle" font-size="12" fill="#005AA7">R</text>
+                        </g>
+
+                        <!-- Ammeter -->
+                        <g class="ammeter">
+                            <circle cx="300" cy="280" r="25" fill="none" stroke="#005AA7" stroke-width="2"/>
+                            <text x="300" y="285" text-anchor="middle" font-size="14" fill="#005AA7" font-weight="bold">A</text>
+                        </g>
+
+                        <!-- Voltmeter -->
+                        <g class="voltmeter">
+                            <circle cx="500" cy="200" r="25" fill="none" stroke="#005AA7" stroke-width="2"/>
+                            <text x="500" y="205" text-anchor="middle" font-size="14" fill="#005AA7" font-weight="bold">V</text>
+                            <line x1="475" y1="175" x2="150" y2="175" stroke="#63B3ED" stroke-width="1" stroke-dasharray="3,3"/>
+                            <line x1="475" y1="225" x2="150" y2="225" stroke="#63B3ED" stroke-width="1" stroke-dasharray="3,3"/>
+                        </g>
+                    </svg>
+                    
+                    <!-- Current Flow Animation Container -->
+                    <div class="current-flow" id="currentFlow"></div>
+                </div>
+            </div>
+
+            <!-- Controls Section -->
+            <div class="controls-section">
+                <h2>Circuit Controls</h2>
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label class="form-label">Voltage (V)</label>
+                        <input type="range" id="voltageSlider" class="slider" min="1" max="20" value="12" step="0.1">
+                        <div class="value-display">
+                            <span id="voltageValue">12.0</span> V
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="form-label">Resistance (Ω)</label>
+                        <input type="range" id="resistanceSlider" class="slider" min="1" max="100" value="4" step="0.1">
+                        <div class="value-display">
+                            <span id="resistanceValue">4.0</span> Ω
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button id="resetBtn" class="btn btn--secondary">Reset to Defaults</button>
+                        <button id="powerToggle" class="btn btn--outline">Show Power</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Measurements Section -->
+            <div class="measurements-section">
+                <h2>Live Measurements</h2>
+                <div class="measurement-displays">
+                    <div class="measurement-card">
+                        <div class="measurement-label">Current</div>
+                        <div class="measurement-value" id="currentDisplay">3.00</div>
+                        <div class="measurement-unit">A</div>
+                    </div>
+                    
+                    <div class="measurement-card">
+                        <div class="measurement-label">Voltage</div>
+                        <div class="measurement-value" id="voltageDisplay">12.0</div>
+                        <div class="measurement-unit">V</div>
+                    </div>
+                    
+                    <div class="measurement-card">
+                        <div class="measurement-label">Resistance</div>
+                        <div class="measurement-value" id="resistanceDisplay">4.0</div>
+                        <div class="measurement-unit">Ω</div>
+                    </div>
+                    
+                    <div class="measurement-card power-card hidden" id="powerCard">
+                        <div class="measurement-label">Power</div>
+                        <div class="measurement-value" id="powerDisplay">36.0</div>
+                        <div class="measurement-unit">W</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Educational Section -->
+            <div class="education-section">
+                <div class="ohms-law-triangle">
+                    <h3>Ohm's Law Triangle</h3>
+                    <div class="triangle-container">
+                        <svg viewBox="0 0 200 200" class="triangle-svg">
+                            <polygon points="100,20 40,160 160,160" fill="#f8fafc" stroke="#005AA7" stroke-width="2"/>
+                            <line x1="100" y1="90" x2="40" y2="160" stroke="#005AA7" stroke-width="1"/>
+                            <line x1="100" y1="90" x2="160" y2="160" stroke="#005AA7" stroke-width="1"/>
+                            <text x="100" y="65" text-anchor="middle" font-size="24" font-weight="bold" fill="#005AA7">V</text>
+                            <text x="70" y="145" text-anchor="middle" font-size="20" font-weight="bold" fill="#005AA7">I</text>
+                            <text x="130" y="145" text-anchor="middle" font-size="20" font-weight="bold" fill="#005AA7">R</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="formulas-section">
+                    <h3>Ohm's Law Formulas</h3>
+                    <div class="formula-cards">
+                        <div class="formula-card">
+                            <div class="formula">V = I × R</div>
+                            <div class="formula-desc">Voltage equals Current times Resistance</div>
+                        </div>
+                        <div class="formula-card">
+                            <div class="formula">I = V ÷ R</div>
+                            <div class="formula-desc">Current equals Voltage divided by Resistance</div>
+                        </div>
+                        <div class="formula-card">
+                            <div class="formula">R = V ÷ I</div>
+                            <div class="formula-desc">Resistance equals Voltage divided by Current</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tips-section">
+                    <h3>Educational Tips</h3>
+                    <ul class="tips-list">
+                        <li>As voltage increases with constant resistance, current increases proportionally</li>
+                        <li>As resistance increases with constant voltage, current decreases</li>
+                        <li>Power consumption increases with both voltage and current</li>
+                        <li>Ohm's Law only applies to ohmic materials at constant temperature</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const voltageSlider = document.getElementById('voltageSlider');
+        const resistanceSlider = document.getElementById('resistanceSlider');
+        const voltageValue = document.getElementById('voltageValue');
+        const resistanceValue = document.getElementById('resistanceValue');
+        const currentDisplay = document.getElementById('currentDisplay');
+        const voltageDisplay = document.getElementById('voltageDisplay');
+        const resistanceDisplay = document.getElementById('resistanceDisplay');
+        const powerDisplay = document.getElementById('powerDisplay');
+        const powerCard = document.getElementById('powerCard');
+        const powerToggle = document.getElementById('powerToggle');
+        const resetBtn = document.getElementById('resetBtn');
+        const currentFlow = document.getElementById('currentFlow');
+        const circuitContainer = document.getElementById('circuitContainer');
+        const circuitSvg = document.getElementById('circuitSvg');
+
+        // Animation variables
+        let voltage = parseFloat(voltageSlider.value);
+        let resistance = parseFloat(resistanceSlider.value);
+        let current = 0;
+        let power = 0;
+        let showPower = false;
+        let animationId;
+        let electrons = [];
+        let svgRect = null;
+
+        // Initialize values
+        calculateCurrent();
+        calculatePower();
+        updateDisplays();
+
+        // Initialize animation after DOM is loaded
+        setTimeout(() => {
+            initializeAnimation();
+        }, 100);
+
+        // Event Listeners
+        voltageSlider.addEventListener('input', function() {
+            voltage = parseFloat(this.value);
+            voltageValue.textContent = voltage.toFixed(1);
+            calculateCurrent();
+            calculatePower();
+            updateDisplays();
+            updateAnimation();
+        });
+
+        resistanceSlider.addEventListener('input', function() {
+            resistance = parseFloat(this.value);
+            resistanceValue.textContent = resistance.toFixed(1);
+            calculateCurrent();
+            calculatePower();
+            updateDisplays();
+            updateAnimation();
+        });
+
+        powerToggle.addEventListener('click', function() {
+            showPower = !showPower;
+            if (showPower) {
+                powerCard.classList.remove('hidden');
+                powerToggle.textContent = 'Hide Power';
+            } else {
+                powerCard.classList.add('hidden');
+                powerToggle.textContent = 'Show Power';
+            }
+        });
+
+        resetBtn.addEventListener('click', function() {
+            voltageSlider.value = 12;
+            resistanceSlider.value = 4;
+            voltage = 12;
+            resistance = 4;
+            voltageValue.textContent = '12.0';
+            resistanceValue.textContent = '4.0';
+            calculateCurrent();
+            calculatePower();
+            updateDisplays();
+            updateAnimation();
+            
+            // Hide power card if shown
+            if (showPower) {
+                showPower = false;
+                powerCard.classList.add('hidden');
+                powerToggle.textContent = 'Show Power';
+            }
+        });
+
+        // Recalculate positions on window resize
+        window.addEventListener('resize', function() {
+            setTimeout(() => {
+                getSvgRect();
+                updateAnimation();
+            }, 100);
+        });
+
+        // Functions
+        function calculateCurrent() {
+            current = voltage / resistance;
+        }
+
+        function calculatePower() {
+            power = voltage * current;
+        }
+
+        function updateDisplays() {
+            currentDisplay.textContent = current.toFixed(2);
+            voltageDisplay.textContent = voltage.toFixed(1);
+            resistanceDisplay.textContent = resistance.toFixed(1);
+            powerDisplay.textContent = power.toFixed(1);
+        }
+
+        function getSvgRect() {
+            svgRect = circuitSvg.getBoundingClientRect();
+            const containerRect = circuitContainer.getBoundingClientRect();
+            
+            // Calculate the offset of the SVG within the container
+            const offsetX = svgRect.left - containerRect.left;
+            const offsetY = svgRect.top - containerRect.top;
+            
+            // Get the scale factor
+            const viewBoxWidth = 600;
+            const viewBoxHeight = 400;
+            const scaleX = svgRect.width / viewBoxWidth;
+            const scaleY = svgRect.height / viewBoxHeight;
+            
+            return {
+                offsetX: offsetX,
+                offsetY: offsetY,
+                scaleX: scaleX,
+                scaleY: scaleY,
+                width: svgRect.width,
+                height: svgRect.height
+            };
+        }
+
+        function svgToContainerCoords(svgX, svgY) {
+            const rect = getSvgRect();
+            return {
+                x: svgX * rect.scaleX + rect.offsetX,
+                y: svgY * rect.scaleY + rect.offsetY
+            };
+        }
+
+        function initializeAnimation() {
+            getSvgRect();
+            startAnimation();
+        }
+
+        function updateAnimation() {
+            stopAnimation();
+            clearElectrons();
+            setTimeout(() => {
+                getSvgRect();
+                startAnimation();
+            }, 50);
+        }
+
+        function stopAnimation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+
+        function clearElectrons() {
+            electrons.forEach(electron => {
+                if (electron.element && electron.element.parentNode) {
+                    electron.element.parentNode.removeChild(electron.element);
+                }
+            });
+            electrons = [];
+            currentFlow.innerHTML = '';
+        }
+
+        function startAnimation() {
+            if (!svgRect) {
+                getSvgRect();
+            }
+
+            // Create circuit path in SVG coordinates
+            const circuitPath = [
+                {x: 50, y: 100},   // Start at battery top
+                {x: 150, y: 100},  // Right to junction
+                {x: 150, y: 150},  // Down to resistor
+                {x: 280, y: 150},  // Right to resistor start
+                {x: 320, y: 150},  // Through resistor
+                {x: 450, y: 150},  // Right to junction
+                {x: 450, y: 100},  // Up to top
+                {x: 550, y: 100},  // Right to end
+                {x: 550, y: 300},  // Down right side
+                {x: 450, y: 300},  // Left to ammeter junction
+                {x: 450, y: 250},  // Up to ammeter
+                {x: 275, y: 250},  // Through ammeter
+                {x: 150, y: 250},  // Left to junction
+                {x: 150, y: 300},  // Down to bottom
+                {x: 50, y: 300},   // Left to battery
+                {x: 50, y:220},   // Up to battery bottom
+                {x: 50, y: 180},   // To battery top
+                {x: 50, y: 100}    // Complete circuit
+            ];
+
+            // Calculate number of electrons based on current (more current = more electrons)
+            const electronCount = Math.max(3, Math.min(15, Math.floor(current * 2)));
+            
+            // Calculate speed based on current (higher current = faster movement)
+            const baseSpeed = Math.max(0.3, Math.min(2.0, current * 0.3));
+
+            // Create electrons with staggered positions
+            for (let i = 0; i < electronCount; i++) {
+                createElectron(circuitPath, i / electronCount, baseSpeed);
+            }
+
+            // Start animation loop
+            animate();
+        }
+
+        function createElectron(path, startProgress, speed) {
+            const electron = document.createElement('div');
+            electron.className = 'electron moving';
+            
+            // Calculate initial position
+            const initialPos = getPositionOnPath(path, startProgress);
+            const containerPos = svgToContainerCoords(initialPos.x, initialPos.y);
+            
+            electron.style.left = (containerPos.x - 4) + 'px';
+            electron.style.top = (containerPos.y - 4) + 'px';
+            
+            currentFlow.appendChild(electron);
+            
+            electrons.push({
+                element: electron,
+                progress: startProgress,
+                speed: speed,
+                path: path
+            });
+        }
+
+        function getPositionOnPath(path, progress) {
+            const totalSegments = path.length - 1;
+            const scaledProgress = (progress * totalSegments) % totalSegments;
+            const segmentIndex = Math.floor(scaledProgress);
+            const segmentProgress = scaledProgress - segmentIndex;
+            
+            const startPoint = path[segmentIndex];
+            const endPoint = path[(segmentIndex + 1) % path.length];
+            
+            return {
+                x: startPoint.x + (endPoint.x - startPoint.x) * segmentProgress,
+                y: startPoint.y + (endPoint.y - startPoint.y) * segmentProgress
+            };
+        }
+
+        function animate() {
+            electrons.forEach(electron => {
+                // Update progress
+                electron.progress += electron.speed * 0.01;
+                if (electron.progress >= 1) {
+                    electron.progress = 0;
+                }
+                
+                // Get new position
+                const svgPos = getPositionOnPath(electron.path, electron.progress);
+                const containerPos = svgToContainerCoords(svgPos.x, svgPos.y);
+                
+                // Update element position
+                if (electron.element && electron.element.parentNode) {
+                    electron.element.style.left = (containerPos.x - 4) + 'px';
+                    electron.element.style.top = (containerPos.y - 4) + 'px';
+                }
+            });
+            
+            animationId = requestAnimationFrame(animate);
+        }
+    </script>
+</body>
+</html>

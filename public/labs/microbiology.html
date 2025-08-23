@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroAR - Interactive Microbiology Learning Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #005AA7;
+            --primary-light: #4a8bc6;
+            --primary-dark: #003f75;
+            --secondary: #f8f9fa;
+            --accent: #FFD700;
+            --text-dark: #212529;
+            --text-light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --gray-light: #e9ecef;
+            --gray: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 90, 167, 0.15);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: linear-gradient(135deg, #ffffff 0%, #e6f0fa 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn--primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn--secondary {
+            background-color: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn--secondary:hover {
+            background-color: var(--gray-light);
+        }
+
+        .btn--outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn--outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn--lg {
+            padding: 12px 24px;
+            font-size: 1.1rem;
+        }
+
+        .btn--full-width {
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card__header {
+            padding: 15px 20px;
+            background: linear-gradient(to right, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .card__body {
+            padding: 20px;
+        }
+
+        .welcome-header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 40px;
+        }
+
+        .welcome-header h1 {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        .welcome-content {
+            text-align: center;
+        }
+
+        .platform-overview {
+            margin-bottom: 40px;
+        }
+
+        .platform-overview h2 {
+            margin-bottom: 20px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 25px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 90, 167, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .screen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .module-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 90, 167, 0.2);
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status--info {
+            background-color: var(--primary-light);
+            color: white;
+        }
+
+        .status--warning {
+            background-color: var(--warning);
+            color: var(--text-dark);
+        }
+
+        .coming-soon {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .module-progress {
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: var(--gray-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .simulation-header {
+            background: linear-gradient(to right, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .simulation-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 280px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .simulation-main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .petri-dish-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .petri-dish {
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .dish-surface {
+            width: 90%;
+            height: 90%;
+            background-color: #f8f9fa;
+            border-radius: 50%;
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .simulation-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .data-panels {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 15px;
+            text-align: center;
+        }
+
+        .count-display, .rate-display, .resistance-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .action-bar {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 5px;
+            -webkit-appearance: none;
+            background: var(--gray-light);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-label {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-light);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-label:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .toggle-input:checked + .toggle-label {
+            background-color: var(--primary);
+        }
+
+        .toggle-input:checked + .toggle-label:before {
+            transform: translateX(26px);
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .assessment-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .quiz-card {
+            margin-bottom: 20px;
+        }
+
+        .quiz-progress {
+            font-weight: 500;
+            color: white;
+        }
+
+        .answer-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .answer-option {
+            padding: 12px 15px;
+            background-color: white;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .answer-option:hover {
+            background-color: var(--gray-light);
+        }
+
+        .answer-option.selected {
+            background-color: var(--primary-light);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .quiz-actions {
+            margin-top: 20px;
+        }
+
+        .answer-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+        }
+
+        .answer-feedback.correct {
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .answer-feedback.incorrect {
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .objectives-progress {
+            margin-bottom: 20px;
+        }
+
+        .objective-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .objective-checkbox {
+            margin-right: 10px;
+            color: var(--success);
+        }
+
+        .progress-circle {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .circle-progress {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0%, var(--gray-light) 0%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .circle-progress::before {
+            content: "";
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: white;
+        }
+
+        .progress-percentage {
+            position: relative;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background-color: var(--gray-light);
+            border-radius: var(--border-radius);
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .completion-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background: linear-gradient(to right, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .glossary-terms {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .term {
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .term:last-child {
+            border-bottom: none;
+        }
+
+        .floating-action-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 900;
+            transition: var(--transition);
+        }
+
+        .floating-action-button:hover {
+            transform: translateY(-3px) rotate(5deg);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1024px) {
+            .simulation-layout {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "sidebar-left"
+                    "main"
+                    "sidebar-right";
+            }
+
+            .simulation-sidebar:first-child {
+                grid-area: sidebar-left;
+            }
+
+            .simulation-main {
+                grid-area: main;
+            }
+
+            .simulation-sidebar:last-child {
+                grid-area: sidebar-right;
+            }
+
+            .assessment-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .screen-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .petri-dish {
+                width: 300px;
+                height: 300px;
+            }
+
+            .data-panels {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .completion-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .welcome-header h1 {
+                font-size: 2.2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .petri-dish {
+                width: 250px;
+                height: 250px;
+            }
+
+            .simulation-controls {
+                flex-wrap: wrap;
+            }
+        }
+
+        .bacterial-colony {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(0, 90, 167, 0.7);
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+
+        .antibiotic-disc {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(220, 53, 69, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: move;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .inhibition-zone {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 2px dashed rgba(0, 90, 167, 0.5);
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="screen active">
+        <div class="container">
+            <header class="welcome-header">
+                <h1>MicroAR</h1>
+                <p class="subtitle">Interactive Microbiology Learning Platform</p>
+            </header>
+            
+            <div class="welcome-content">
+                <div class="platform-overview">
+                    <h2>Immersive 3D Learning Environments</h2>
+                    <p>Experience bacterial growth and antibiotic resistance through interactive simulations that bring textbook content to life.</p>
+                    
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">🦠</div>
+                            <h3>3D Petri Dish Simulation</h3>
+                            <p>Watch bacterial colonies grow and interact in real-time</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">💊</div>
+                            <h3>Antibiotic Testing Lab</h3>
+                            <p>Drag-and-drop antibiotic discs to test effectiveness</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h3>Real-time Data Analysis</h3>
+                            <p>View dose-response curves and growth metrics</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎯</div>
+                            <h3>Interactive Assessments</h3>
+                            <p>Test your knowledge with MIC determination quizzes</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn--primary btn--lg" onclick="navigateToModules()">
+                    Start Learning
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Modules Menu -->
+    <div id="modules-screen" class="screen">
+        <div class="container">
+            <header class="screen-header">
+                <h1>Learning Modules</h1>
+                <button class="btn btn--secondary" onclick="navigateToWelcome()">← Back</button>
+            </header>
+            
+            <div class="modules-grid">
+                <div class="module-card active-module" onclick="navigateToSimulation()">
+                    <div class="module-header">
+                        <h3>Bacterial Growth & Antibiotic Resistance</h3>
+                        <span class="status status--info">Active</span>
+                    </div>
+                    <div class="module-content">
+                        <div class="learning-objectives">
+                            <h4>Learning Objectives:</h4>
+                            <ul id="objectives-list">
+                                <!-- Populated by JavaScript -->
+                            </ul>
+                        </div>
+                        <div class="module-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text">0% Complete</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="module-card coming-soon">
+                    <div class="module-header">
+                        <h3>Viral Replication Mechanisms</h3>
+                        <span class="status status--warning">Coming Soon</span>
+                    </div>
+                </div>
+                
+                <div class="module-card coming-soon">
+                    <div class="module-header">
+                        <h3>Immunological Responses</h3>
+                        <span class="status status--warning">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D Simulation Screen -->
+    <div id="simulation-screen" class="screen">
+        <div class="simulation-header">
+            <div class="container">
+                <div class="header-content">
+                    <h1>Bacterial Growth Simulation</h1>
+                    <button class="btn btn--secondary" onclick="navigateToModules()">← Back to Modules</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="simulation-layout">
+            <div class="simulation-sidebar">
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Experiment Controls</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="control-group">
+                            <label class="form-label">Bacterial Strain</label>
+                            <select id="bacterial-strain" class="form-control">
+                                <!-- Populated by JavaScript -->
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Temperature (°C)</label>
+                            <input type="range" id="temperature" class="range-slider" min="20" max="45" value="37">
+                            <span id="temp-value">37°C</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Nutrient Level</label>
+                            <input type="range" id="nutrients" class="range-slider" min="0" max="100" value="80">
+                            <span id="nutrient-value">80%</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Horizontal Gene Transfer</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="gene-transfer" class="toggle-input">
+                                <label for="gene-transfer" class="toggle-label">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="control-buttons">
+                            <button id="start-simulation" class="btn btn--primary btn--full-width">Start Simulation</button>
+                            <button id="reset-simulation" class="btn btn--secondary btn--full-width">Reset</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Growth Phase</h3>
+                    </div>
+                    <div class="card__body">
+                        <div id="current-phase" class="growth-phase-indicator">
+                            <span class="phase-name">Lag Phase</span>
+                            <span class="phase-time">0-2 hours</span>
+                            <p class="phase-description">Bacteria adapt to new environment, minimal growth</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="simulation-main">
+                <div class="petri-dish-container">
+                    <div id="petri-dish" class="petri-dish">
+                        <div class="dish-surface">
+                            <div id="bacterial-colonies" class="bacterial-colonies">
+                                <!-- Bacterial colonies will be generated here -->
+                            </div>
+                            <div id="antibiotic-zones" class="antibiotic-zones">
+                                <!-- Antibiotic zones will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="simulation-controls">
+                        <button id="play-pause" class="btn btn--primary">▶️ Play</button>
+                        <input type="range" id="time-speed" class="time-slider" min="0.5" max="5" step="0.5" value="1">
+                        <span id="speed-display">1x Speed</span>
+                        <span id="simulation-time">0 hours</span>
+                    </div>
+                </div>
+                
+                <div class="data-panels">
+                    <div class="panel">
+                        <h4>Bacterial Count</h4>
+                        <div class="count-display">
+                            <span id="bacterial-count">1,000</span>
+                            <small>CFU/mL</small>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h4>Growth Rate</h4>
+                        <div class="rate-display">
+                            <span id="growth-rate">0.0</span>
+                            <small>/hour</small>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h4>Resistance %</h4>
+                        <div class="resistance-display">
+                            <span id="resistance-percent">0</span>
+                            <small>%</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="simulation-sidebar">
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Antibiotic Arsenal</h3>
+                    </div>
+                    <div class="card__body">
+                        <div id="antibiotic-inventory" class="antibiotic-list">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        <div class="drag-instructions">
+                            <p>💡 Drag antibiotic discs onto the petri dish to test effectiveness</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Dose-Response Curve</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="chart-container" style="position: relative; height: 250px;">
+                            <canvas id="dose-response-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn--primary" onclick="navigateToAssessment()">
+                Proceed to Assessment
+            </button>
+        </div>
+    </div>
+
+    <!-- Assessment Screen -->
+    <div id="assessment-screen" class="screen">
+        <div class="container">
+            <header class="screen-header">
+                <h1>Knowledge Assessment</h1>
+                <button class="btn btn--secondary" onclick="navigateToSimulation()">← Back to Simulation</button>
+            </header>
+            
+            <div class="assessment-layout">
+                <div class="quiz-section">
+                    <div class="quiz-card card">
+                        <div class="card__header">
+                            <h3>MIC Determination Quiz</h3>
+                            <div class="quiz-progress">
+                                <span id="question-number">1</span> / <span id="total-questions">3</span>
+                            </div>
+                        </div>
+                        <div class="card__body">
+                            <div id="quiz-content">
+                                <div class="question">
+                                    <h4 id="question-text">Loading question...</h4>
+                                    <div id="answer-options" class="answer-options">
+                                        <!-- Options populated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="quiz-actions">
+                                    <button id="submit-answer" class="btn btn--primary" disabled>Submit Answer</button>
+                                    <button id="next-question" class="btn btn--secondary hidden">Next Question</button>
+                                </div>
+                                <div id="answer-feedback" class="answer-feedback hidden">
+                                    <!-- Feedback shown after answer submission -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Learning Progress</h3>
+                        </div>
+                        <div class="card__body">
+                            <div id="progress-objectives" class="objectives-progress">
+                                <!-- Progress indicators for each objective -->
+                            </div>
+                            
+                            <div class="overall-progress">
+                                <h4>Overall Completion</h4>
+                                <div class="progress-circle">
+                                    <div class="circle-progress" data-progress="0">
+                                        <span class="progress-percentage">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Performance Summary</h3>
+                        </div>
+                        <div class="card__body">
+                            <div id="performance-stats" class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-value" id="correct-answers">0</span>
+                                    <span class="stat-label">Correct Answers</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value" id="total-attempts">0</span>
+                                    <span class="stat-label">Total Attempts</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value" id="accuracy-rate">0%</span>
+                                    <span class="stat-label">Accuracy Rate</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="completion-actions">
+                <button id="review-simulation" class="btn btn--outline" onclick="navigateToSimulation()">
+                    Review Simulation
+                </button>
+                <button id="complete-module" class="btn btn--primary" onclick="completeModule()">
+                    Complete Module
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Glossary Modal -->
+    <div id="glossary-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Microbiology Glossary</h3>
+                <button class="modal-close" onclick="closeGlossary()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="glossary-terms">
+                    <div class="term">
+                        <strong>MIC (Minimum Inhibitory Concentration):</strong>
+                        The lowest concentration of an antibiotic that prevents visible bacterial growth.
+                    </div>
+                    <div class="term">
+                        <strong>Horizontal Gene Transfer:</strong>
+                        The movement of genetic material between bacteria through conjugation, transformation, or transduction.
+                    </div>
+                    <div class="term">
+                        <strong>CFU (Colony Forming Units):</strong>
+                        A unit used to estimate the number of viable bacteria in a sample.
+                    </div>
+                    <div class="term">
+                        <strong>Biofilm:</strong>
+                        A structured community of bacteria enclosed in a self-produced polymeric matrix.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button id="help-fab" class="floating-action-button" onclick="openGlossary()" title="Open Glossary">
+        ?
+    </button>
+
+    <script>
+        // Navigation functions
+        function navigateToModules() {
+            document.getElementById('welcome-screen').classList.remove('active');
+            document.getElementById('modules-screen').classList.add('active');
+        }
+
+        function navigateToWelcome() {
+            document.getElementById('modules-screen').classList.remove('active');
+            document.getElementById('welcome-screen').classList.add('active');
+        }
+
+        function navigateToSimulation() {
+            document.getElementById('modules-screen').classList.remove('active');
+            document.getElementById('simulation-screen').classList.add('active');
+            initializeSimulation();
+        }
+
+        function navigateToAssessment() {
+            document.getElementById('simulation-screen').classList.remove('active');
+            document.getElementById('assessment-screen').classList.add('active');
+            initializeAssessment();
+        }
+
+        function openGlossary() {
+            document.getElementById('glossary-modal').classList.remove('hidden');
+        }
+
+        function closeGlossary() {
+            document.getElementById('glossary-modal').classList.add('hidden');
+        }
+
+        function completeModule() {
+            alert('Module completed successfully! Returning to modules screen.');
+            document.getElementById('assessment-screen').classList.remove('active');
+            document.getElementById('modules-screen').classList.add('active');
+            
+            // Update progress
+            document.querySelector('.progress-fill').style.width = '100%';
+            document.querySelector('.progress-text').textContent = '100% Complete';
+        }
+
+        // Simulation variables
+        let simulationInterval;
+        let simulationRunning = false;
+        let simulationTime = 0;
+        let bacterialCount = 1000;
+        let growthRate = 0.0;
+        let resistancePercent = 0;
+        let currentPhase = 'lag';
+        let colonies = [];
+        let antibiotics = [];
+
+        // Initialize the simulation
+        function initializeSimulation() {
+            // Clear any existing simulation
+            clearInterval(simulationInterval);
+            
+            // Reset variables
+            simulationTime = 0;
+            bacterialCount = 1000;
+            growthRate = 0.0;
+            resistancePercent = 0;
+            currentPhase = 'lag';
+            colonies = [];
+            antibiotics = [];
+            
+            // Update UI
+            document.getElementById('simulation-time').textContent = '0 hours';
+            document.getElementById('bacterial-count').textContent = '1,000';
+            document.getElementById('growth-rate').textContent = '0.0';
+            document.getElementById('resistance-percent').textContent = '0';
+            
+            // Clear petri dish
+            document.getElementById('bacterial-colonies').innerHTML = '';
+            document.getElementById('antibiotic-zones').innerHTML = '';
+            
+            // Initialize dose-response chart
+            initializeChart();
+            
+            // Add event listeners
+            document.getElementById('play-pause').addEventListener('click', toggleSimulation);
+            document.getElementById('start-simulation').addEventListener('click', startSimulation);
+            document.getElementById('reset-simulation').addEventListener('click', resetSimulation);
+            document.getElementById('time-speed').addEventListener('input', updateSpeed);
+            
+            // Make antibiotic discs draggable
+            makeAntibioticsDraggable();
+        }
+
+        // Initialize the assessment
+        function initializeAssessment() {
+            const questions = [
+                {
+                    question: "What does MIC stand for in microbiology?",
+                    options: [
+                        "Minimum Inhibitory Concentration",
+                        "Maximum Inhibitory Concentration",
+                        "Minimum Infection Concentration",
+                        "Maximum Infection Concentration"
+                    ],
+                    correctAnswer: 0
+                },
+                {
+                    question: "Which phase of bacterial growth is characterized by rapid cell division?",
+                    options: [
+                        "Lag Phase",
+                        "Log Phase",
+                        "Stationary Phase",
+                        "Death Phase"
+                    ],
+                    correctAnswer: 1
+                },
+                {
+                    question: "What is the primary mechanism of antibiotic resistance through horizontal gene transfer?",
+                    options: [
+                        "Mutation",
+                        "Plasmid exchange",
+                        "Efflux pumps",
+                        "Enzyme modification"
+                    ],
+                    correctAnswer: 1
+                }
+            ];
+            
+            let currentQuestion = 0;
+            let selectedAnswer = null;
+            let correctAnswers = 0;
+            
+            // Display first question
+            displayQuestion(currentQuestion);
+            
+            // Set up event listeners
+            document.getElementById('submit-answer').addEventListener('click', submitAnswer);
+            document.getElementById('next-question').addEventListener('click', nextQuestion);
+            
+            function displayQuestion(index) {
+                const question = questions[index];
+                document.getElementById('question-number').textContent = index + 1;
+                document.getElementById('total-questions').textContent = questions.length;
+                document.getElementById('question-text').textContent = question.question;
+                
+                const optionsContainer = document.getElementById('answer-options');
+                optionsContainer.innerHTML = '';
+                
+                question.options.forEach((option, i) => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'answer-option';
+                    optionElement.textContent = option;
+                    optionElement.dataset.index = i;
+                    optionElement.addEventListener('click', function() {
+                        // Remove selected class from all options
+                        document.querySelectorAll('.answer-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked option
+                        this.classList.add('selected');
+                        selectedAnswer = i;
+                        document.getElementById('submit-answer').disabled = false;
+                    });
+                    
+                    optionsContainer.appendChild(optionElement);
+                });
+                
+                // Reset UI for new question
+                document.getElementById('submit-answer').classList.remove('hidden');
+                document.getElementById('next-question').classList.add('hidden');
+                document.getElementById('answer-feedback').classList.add('hidden');
+                document.getElementById('submit-answer').disabled = true;
+            }
+            
+            function submitAnswer() {
+                const question = questions[currentQuestion];
+                const feedbackElement = document.getElementById('answer-feedback');
+                
+                if (selectedAnswer === question.correctAnswer) {
+                    feedbackElement.textContent = 'Correct! ' + getExplanation(currentQuestion);
+                    feedbackElement.className = 'answer-feedback correct';
+                    correctAnswers++;
+                } else {
+                    feedbackElement.textContent = 'Incorrect. The correct answer is: ' + question.options[question.correctAnswer];
+                    feedbackElement.className = 'answer-feedback incorrect';
+                }
+                
+                // Update performance stats
+                document.getElementById('correct-answers').textContent = correctAnswers;
+                document.getElementById('total-attempts').textContent = currentQuestion + 1;
+                document.getElementById('accuracy-rate').textContent = Math.round((correctAnswers / (currentQuestion + 1)) * 100) + '%';
+                
+                // Update progress circle
+                const progress = ((currentQuestion + 1) / questions.length) * 100;
+                document.querySelector('.circle-progress').style.background = `conic-gradient(var(--primary) ${progress}%, var(--gray-light) 0%)`;
+                document.querySelector('.progress-percentage').textContent = Math.round(progress) + '%';
+                
+                feedbackElement.classList.remove('hidden');
+                document.getElementById('submit-answer').classList.add('hidden');
+                document.getElementById('next-question').classList.remove('hidden');
+            }
+            
+            function nextQuestion() {
+                currentQuestion++;
+                selectedAnswer = null;
+                
+                if (currentQuestion < questions.length) {
+                    displayQuestion(currentQuestion);
+                } else {
+                    // Quiz completed
+                    document.getElementById('quiz-content').innerHTML = `
+                        <div class="quiz-complete">
+                            <h3>Quiz Completed!</h3>
+                            <p>Your score: ${correctAnswers} out of ${questions.length}</p>
+                            <p>${correctAnswers === questions.length ? 'Perfect score! Well done!' : 'Good effort! Review the material and try again.'}</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            function getExplanation(index) {
+                const explanations = [
+                    "MIC is the lowest concentration of an antibiotic that inhibits visible bacterial growth.",
+                    "The log phase is when bacteria divide at their maximum rate.",
+                    "Plasmid exchange through conjugation is a common method of horizontal gene transfer for antibiotic resistance."
+                ];
+                return explanations[index];
+            }
+        }
+
+        // Initialize the dose-response chart
+        function initializeChart() {
+            const ctx = document.getElementById('dose-response-chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0', '1', '2', '4', '8', '16', '32'],
+                    datasets: [{
+                        label: 'Bacterial Growth (%)',
+                        data: [100, 90, 75, 50, 25, 10, 5],
+                        borderColor: '#005AA7',
+                        backgroundColor: 'rgba(0, 90, 167, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Bacterial Growth (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Antibiotic Concentration (μg/mL)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Dose-Response Curve'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Simulation functions
+        function startSimulation() {
+            if (simulationRunning) return;
+            
+            // Get simulation parameters
+            const strain = document.getElementById('bacterial-strain').value;
+            const temperature = document.getElementById('temperature').value;
+            const nutrients = document.getElementById('nutrients').value;
+            const geneTransfer = document.getElementById('gene-transfer').checked;
+            
+            // Create initial colonies
+            createInitialColonies(5);
+            
+            // Start simulation loop
+            const speed = parseFloat(document.getElementById('time-speed').value);
+            simulationInterval = setInterval(updateSimulation, 1000 / speed);
+            simulationRunning = true;
+            document.getElementById('play-pause').textContent = '⏸️ Pause';
+        }
+
+        function toggleSimulation() {
+            if (simulationRunning) {
+                clearInterval(simulationInterval);
+                document.getElementById('play-pause').textContent = '▶️ Play';
+            } else {
+                const speed = parseFloat(document.getElementById('time-speed').value);
+                simulationInterval = setInterval(updateSimulation, 1000 / speed);
+                document.getElementById('play-pause').textContent = '⏸️ Pause';
+            }
+            simulationRunning = !simulationRunning;
+        }
+
+        function resetSimulation() {
+            clearInterval(simulationInterval);
+            simulationRunning = false;
+            initializeSimulation();
+            document.getElementById('play-pause').textContent = '▶️ Play';
+        }
+
+        function updateSpeed() {
+            const speed = parseFloat(document.getElementById('time-speed').value);
+            document.getElementById('speed-display').textContent = speed + 'x Speed';
+            
+            if (simulationRunning) {
+                clearInterval(simulationInterval);
+                simulationInterval = setInterval(updateSimulation, 1000 / speed);
+            }
+        }
+
+        function updateSimulation() {
+            // Update simulation time
+            simulationTime += 0.1;
+            document.getElementById('simulation-time').textContent = simulationTime.toFixed(1) + ' hours';
+            
+            // Update growth phase
+            updateGrowthPhase();
+            
+            // Update bacterial count based on growth phase
+            switch(currentPhase) {
+                case 'lag':
+                    bacterialCount *= 1.05;
+                    growthRate = 0.05;
+                    break;
+                case 'log':
+                    bacterialCount *= 1.5;
+                    growthRate = 0.5;
+                    break;
+                case 'stationary':
+                    bacterialCount *= 1.01;
+                    growthRate = 0.01;
+                    break;
+                case 'death':
+                    bacterialCount *= 0.8;
+                    growthRate = -0.2;
+                    break;
+            }
+            
+            // Apply antibiotic effects
+            applyAntibioticEffects();
+            
+            // Update resistance if gene transfer is enabled
+            const geneTransfer = document.getElementById('gene-transfer').checked;
+            if (geneTransfer && currentPhase === 'log') {
+                resistancePercent += 0.5;
+                if (resistancePercent > 100) resistancePercent = 100;
+            }
+            
+            // Update UI
+            document.getElementById('bacterial-count').textContent = Math.round(bacterialCount).toLocaleString();
+            document.getElementById('growth-rate').textContent = growthRate.toFixed(2);
+            document.getElementById('resistance-percent').textContent = Math.round(resistancePercent);
+            
+            // Update colonies visually
+            updateColonies();
+        }
+
+        function updateGrowthPhase() {
+            let phaseName, phaseTime, phaseDesc;
+            
+            if (simulationTime < 2) {
+                currentPhase = 'lag';
+                phaseName = 'Lag Phase';
+                phaseTime = '0-2 hours';
+                phaseDesc = 'Bacteria adapt to new environment, minimal growth';
+            } else if (simulationTime < 8) {
+                currentPhase = 'log';
+                phaseName = 'Log Phase';
+                phaseTime = '2-8 hours';
+                phaseDesc = 'Exponential growth, rapid cell division';
+            } else if (simulationTime < 24) {
+                currentPhase = 'stationary';
+                phaseName = 'Stationary Phase';
+                phaseTime = '8-24 hours';
+                phaseDesc = 'Growth rate equals death rate, resources deplete';
+            } else {
+                currentPhase = 'death';
+                phaseName = 'Death Phase';
+                phaseTime = '24+ hours';
+                phaseDesc = 'Cell death exceeds growth, population declines';
+            }
+            
+            // Update phase indicator
+            const phaseElement = document.getElementById('current-phase');
+            phaseElement.querySelector('.phase-name').textContent = phaseName;
+            phaseElement.querySelector('.phase-time').textContent = phaseTime;
+            phaseElement.querySelector('.phase-description').textContent = phaseDesc;
+        }
+
+        function createInitialColonies(count) {
+            const coloniesContainer = document.getElementById('bacterial-colonies');
+            coloniesContainer.innerHTML = '';
+            colonies = [];
+            
+            for (let i = 0; i < count; i++) {
+                // Random position within petri dish
+                const x = 50 + (Math.random() * 40 - 20);
+                const y = 50 + (Math.random() * 40 - 20);
+                
+                // Create colony element
+                const colony = document.createElement('div');
+                colony.className = 'bacterial-colony';
+                colony.style.width = '20px';
+                colony.style.height = '20px';
+                colony.style.left = x + '%';
+                colony.style.top = y + '%';
+                colony.style.backgroundColor = 'rgba(0, 90, 167, 0.7)';
+                
+                coloniesContainer.appendChild(colony);
+                
+                // Store colony data
+                colonies.push({
+                    element: colony,
+                    x: x,
+                    y: y,
+                    size: 20,
+                    resistance: Math.random() * 20 // Random resistance level 0-20%
+                });
+            }
+        }
+
+        function updateColonies() {
+            colonies.forEach(colony => {
+                // Grow colonies in log phase
+                if (currentPhase === 'log' && colony.size < 60) {
+                    colony.size += 0.5;
+                    colony.element.style.width = colony.size + 'px';
+                    colony.element.style.height = colony.size + 'px';
+                }
+                
+                // Some movement simulation
+                if (currentPhase === 'log' || currentPhase === 'stationary') {
+                    colony.x += (Math.random() - 0.5) * 0.2;
+                    colony.y += (Math.random() - 0.5) * 0.2;
+                    
+                    // Keep within bounds
+                    colony.x = Math.max(10, Math.min(90, colony.x));
+                    colony.y = Math.max(10, Math.min(90, colony.y));
+                    
+                    colony.element.style.left = colony.x + '%';
+                    colony.element.style.top = colony.y + '%';
+                }
+            });
+        }
+
+        function applyAntibioticEffects() {
+            antibiotics.forEach(antibiotic => {
+                colonies.forEach(colony => {
+                    // Calculate distance between colony and antibiotic
+                    const dx = colony.x - antibiotic.x;
+                    const dy = colony.y - antibiotic.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // If colony is within antibiotic effect radius
+                    if (distance < antibiotic.effectRadius) {
+                        // Calculate effect based on distance and colony resistance
+                        const effect = antibiotic.strength * (1 - (distance / antibiotic.effectRadius)) * (1 - (colony.resistance / 100));
+                        
+                        // Reduce colony size based on effect
+                        colony.size = Math.max(5, colony.size - effect);
+                        colony.element.style.width = colony.size + 'px';
+                        colony.element.style.height = colony.size + 'px';
+                        
+                        // Visual effect - change color based on effect
+                        const intensity = Math.min(1, effect / 5);
+                        colony.element.style.backgroundColor = `rgba(0, ${90 + intensity * 165}, ${167 - intensity * 167}, 0.7)`;
+                    }
+                });
+            });
+        }
+
+        function makeAntibioticsDraggable() {
+            const antibioticItems = document.querySelectorAll('.antibiotic-item');
+            antibioticItems.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', this.querySelector('strong').textContent);
+                });
+            });
+            
+            const petriDish = document.getElementById('petri-dish');
+            petriDish.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            petriDish.addEventListener('drop', function(e) {
+                e.preventDefault();
+                const antibioticName = e.dataTransfer.getData('text/plain');
+                
+                // Get mouse position relative to petri dish
+                const rect = petriDish.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                
+                // Create antibiotic disc
+                createAntibioticDisc(antibioticName, x, y);
+            });
+        }
+
+        function createAntibioticDisc(name, x, y) {
+            const antibioticZones = document.getElementById('antibiotic-zones');
+            
+            // Create disc element
+            const disc = document.createElement('div');
+            disc.className = 'antibiotic-disc';
+            disc.style.left = x + '%';
+            disc.style.top = y + '%';
+            disc.textContent = name.charAt(0);
+            
+            // Create inhibition zone
+            const zone = document.createElement('div');
+            zone.className = 'inhibition-zone';
+            zone.style.left = x + '%';
+            zone.style.top = y + '%';
+            zone.style.width = '100px';
+            zone.style.height = '100px';
+            
+            antibioticZones.appendChild(disc);
+            antibioticZones.appendChild(zone);
+            
+            // Store antibiotic data
+            antibiotics.push({
+                name: name,
+                x: x,
+                y: y,
+                strength: 0.5 + Math.random() * 0.5, // Random strength between 0.5 and 1.0
+                effectRadius: 50 // pixels
+            });
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate learning objectives
+            const objectivesList = document.getElementById('objectives-list');
+            const objectives = [
+                "Understand bacterial growth phases",
+                "Explain factors affecting antibiotic efficacy",
+                "Interpret dose-response curves",
+                "Determine Minimum Inhibitory Concentration (MIC)",
+                "Describe mechanisms of antibiotic resistance"
+            ];
+            
+            objectives.forEach(obj => {
+                const li = document.createElement('li');
+                li.textContent = obj;
+                objectivesList.appendChild(li);
+            });
+            
+            // Populate bacterial strains
+            const bacterialStrainSelect = document.getElementById('bacterial-strain');
+            const strains = [
+                "Escherichia coli (non-resistant)",
+                "Staphylococcus aureus (MRSA)",
+                "Pseudomonas aeruginosa",
+                "Klebsiella pneumoniae (carbapenem-resistant)",
+                "Mycobacterium tuberculosis"
+            ];
+            
+            strains.forEach(strain => {
+                const option = document.createElement('option');
+                option.value = strain.toLowerCase().replace(/\s+/g, '-');
+                option.textContent = strain;
+                bacterialStrainSelect.appendChild(option);
+            });
+            
+            // Populate antibiotic inventory
+            const antibioticInventory = document.getElementById('antibiotic-inventory');
+            const antibiotics = [
+                { name: "Penicillin", class: "β-lactam" },
+                { name: "Vancomycin", class: "Glycopeptide" },
+                { name: "Ciprofloxacin", class: "Fluoroquinolone" },
+                { name: "Tetracycline", class: "Tetracycline" },
+                { name: "Erythromycin", class: "Macrolide" }
+            ];
+            
+            antibiotics.forEach(ab => {
+                const abElement = document.createElement('div');
+                abElement.className = 'antibiotic-item';
+                abElement.innerHTML = `
+                    <strong>${ab.name}</strong>
+                    <span>${ab.class}</span>
+                `;
+                abElement.setAttribute('draggable', 'true');
+                antibioticInventory.appendChild(abElement);
+            });
+            
+            // Set up temperature slider
+            const tempSlider = document.getElementById('temperature');
+            const tempValue = document.getElementById('temp-value');
+            
+            tempSlider.addEventListener('input', function() {
+                tempValue.textContent = `${this.value}°C`;
+            });
+            
+            // Set up nutrient slider
+            const nutrientSlider = document.getElementById('nutrients');
+            const nutrientValue = document.getElementById('nutrient-value');
+            
+            nutrientSlider.addEventListener('input', function() {
+                nutrientValue.textContent = `${this.value}%`;
+            });
+            
+            // Set up time speed slider
+            const timeSlider = document.getElementById('time-speed');
+            const speedDisplay = document.getElementById('speed-display');
+            
+            timeSlider.addEventListener('input', function() {
+                speedDisplay.textContent = `${this.value}x Speed`;
+            });
+        });
+    </script>
+</body>
+</html>

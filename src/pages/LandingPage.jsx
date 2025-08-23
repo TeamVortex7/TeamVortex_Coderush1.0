@@ -1,11 +1,12 @@
-import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
+import React, { useLayoutEffect, useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Link } from 'react-router-dom'; // Make sure Link is imported
 
 // GSAP plugin registration
 gsap.registerPlugin(ScrollTrigger);
 
-// --- Social Icons (with complete SVG paths) ---
+// --- SVG Icon Components ---
 const TwitterIcon = () => (
   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
     <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
@@ -22,7 +23,7 @@ const GithubIcon = () => (
   </svg>
 );
 
-// --- Background Animation (Fixed Contrast) ---
+// --- Background Animation ---
 const BackgroundAnimation = () => (
   <div className="fixed inset-0 -z-20">
     <style>{`
@@ -44,9 +45,7 @@ const BackgroundAnimation = () => (
 
 // --- Navbar ---
 const Navbar = () => (
-  // This outer container handles the positioning and padding
   <header className="fixed top-0 left-0 w-full z-50 p-4 font-montserrat">
-    {/* This inner container is the actual floating, blurred navbar */}
     <div className="container mx-auto bg-black/40 backdrop-blur-2xl rounded-full shadow-2xl border border-white/20">
       <div className="px-6 py-3 flex justify-between items-center">
         <h1 className="text-2xl font-extrabold text-white">
@@ -72,7 +71,7 @@ const Hero = () => {
     return () => ctx.revert();
   }, []);
 
-   return (
+  return (
     <section ref={heroRef} className="relative min-h-screen flex items-center justify-center text-center font-montserrat text-white">
       <div className="container mx-auto px-6 hero-content">
         <h2 className="text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-animation_10s_ease_infinite]">
@@ -81,8 +80,6 @@ const Hero = () => {
         <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-10">
           Explore, experiment, and discover with interactive AR/VR-powered simulations.
         </p>
-
-        {/* --- This is the updated button container --- */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a href="#catalog" className="px-8 py-3 bg-white text-blue-700 font-bold rounded-lg shadow-xl hover:scale-105 transform transition-transform duration-300">
             Explore Simulations
@@ -91,11 +88,11 @@ const Hero = () => {
             Sign In
           </a>
         </div>
-        
       </div>
     </section>
   );
 };
+
 // --- Team Section ---
 const TeamSection = () => {
   const teamMembers = [
@@ -155,13 +152,15 @@ const TeamSection = () => {
   );
 };
 
-// --- Catalog Section (FIXED CARD HEIGHT) ---
+// --- Catalog Section (FIXED CARD HEIGHT & ADDED LINKS) ---
 const ContentCatalog = () => {
   const catalogRef = useRef(null);
+
+  // --- UPDATED: Add a 'path' to each item object ---
   const items = [
-    { image: "https://placehold.co/600x400/93C5FD/1E3A8A?text=Biology", title: "Virtual Biology Lab", description: "Dissect, explore cells, and understand DNA replication interactively. This lab provides a deep dive into cellular structures.", tag: "Biology" },
-    { image: "https://placehold.co/600x400/A5B4FC/312E81?text=Chemistry", title: "Chemistry Reaction Simulator", description: "Mix chemicals safely, observe reactions, and explore the periodic table.", tag: "Chemistry" },
-    { image: "https://placehold.co/600x400/6EE7B7/064E3B?text=Physics", title: "Physics World", description: "Experiment with gravity, circuits, and electricity in real-time. A perfect environment for learning core physics concepts.", tag: "Physics" },
+    { image: "https://img.freepik.com/free-photo/3d-render-medical-background-with-abstract-virus-cells-dna-strands_1048-6362.jpg", title: "Micro Biology Lab", description: "Step into a virtual lab and use a high-powered microscope to identify different bacteria, viruses, and fungi. Run experiments to see how they grow, multiply, and interact with their environment.", tag: "Biology", path: "/biology" },
+    { image: "https://cdn.pixabay.com/photo/2015/04/26/13/47/chemistry-740453_1280.jpg", title: "Chemical Reaction Simulator", description: "Step into the lab to create and witness spectacular chemical changes. From synthesis to combustion, trigger reactions and discover the principles behind them.", tag: "Chemistry", path: "/chemistry" },
+    { image: "https://st4.depositphotos.com/2673929/21620/i/450/depositphotos_216201272-stock-photo-glowing-gold-blue-atom-model.jpg", title: "Density Lab", description: "Launch different types of wood into a fluid and manipulate their properties to discover the principles of buoyancy and density firsthand.", tag: "Physics", path: "/physics" },
   ];
 
   useLayoutEffect(() => {
@@ -181,18 +180,18 @@ const ContentCatalog = () => {
         <p className="max-w-2xl mx-auto text-gray-600 mb-12">Dive into our library of immersive simulations.</p>
         <div className="grid md:grid-cols-3 gap-8 text-left">
           {items.map((it, i) => (
-            <div key={i} className="catalog-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/80 transform hover:-translate-y-2 transition-transform duration-300 flex flex-col">
+            // --- UPDATED: Wrap the entire card in a Link component ---
+            <Link to={it.path} key={i} className="catalog-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/80 transform hover:-translate-y-2 transition-transform duration-300 flex flex-col">
               <img src={it.image} alt={it.title} className="w-full h-48 object-cover" />
-              {/* This wrapper div allows the content to grow and push the button down */}
               <div className="p-6 flex flex-col flex-grow">
                 <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full self-start">{it.tag}</span>
                 <h3 className="text-2xl font-bold text-gray-900 mt-3">{it.title}</h3>
                 <p className="text-gray-600 text-sm mt-1 flex-grow">{it.description}</p>
-                <button className="w-full mt-6 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:scale-105 transform transition-transform duration-300">
+                <div className="w-full mt-6 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg text-center">
                   Try for Free
-                </button>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -211,26 +210,21 @@ const JoinUs = () => (
   </section>
 );
 
-// --- Footer (ENHANCED) ---
-// --- SVG Icon for Email (to be used in the footer) ---
+// --- Footer ---
 const MailIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
   </svg>
 );
 
-
 const Footer = () => (
   <footer className="bg-gray-900 text-gray-400 font-montserrat">
     <div className="container mx-auto px-6 py-12">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Company Info */}
         <div className="col-span-1 md:col-span-2">
           <h2 className="text-2xl font-bold text-white mb-2">Team<span className="text-blue-500">Vortex</span></h2>
           <p className="pr-8">Our mission is to make education an adventure. We use immersive technology to ignite curiosity and empower students to explore, create, and build the future.</p>
         </div>
-       
-        {/* Quick Links */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
           <ul className="space-y-2">
@@ -239,13 +233,11 @@ const Footer = () => (
             <li><a href="#join" className="hover:text-white transition-colors">Join Us</a></li>
           </ul>
         </div>
-
-        {/* Contact & GitHub */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">Connect With Us</h3>
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="https://github.com/TeamVortex7/" className="hover:text-white transition-colors">
                 <GithubIcon />
               </a>
               <a href="https://github.com/TeamVortex7/" className="hover:text-white transition-colors text-sm">GitHub Repository</a>
@@ -265,6 +257,7 @@ const Footer = () => (
     </div>
   </footer>
 );
+
 // --- Main App ---
 export default function App() {
   return (

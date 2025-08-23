@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wright Flyer - Professional Flight Dynamics Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(180deg, #FFFFFF 0%, #E6F0FA 30%, #B3D4FF 60%, #005AA7 100%);
+            overflow: hidden;
+            height: 100vh;
+            color: #2C3E50;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #controls-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 90, 167, 0.1);
+            border: 1px solid #005AA7;
+            z-index: 100;
+            width: 320px;
+            max-width: 90vw;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .panel-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #005AA7;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-subtitle {
+            font-size: 0.7em;
+            color: #2C3E50;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .control-section {
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 90, 167, 0.1);
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #2C3E50;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .control-grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, #FFFFFF 0%, #B3D4FF 50%, #005AA7 100%);
+            color: #2C3E50;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.75em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 15px rgba(0, 90, 167, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .control-button:hover::before {
+            left: 100%;
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 90, 167, 0.3);
+        }
+
+        .control-button:active {
+            transform: translateY(0);
+        }
+
+        .control-button.active {
+            background: linear-gradient(135deg, #B3D4FF 0%, #005AA7 100%);
+            color: #FFFFFF;
+            box-shadow: 0 4px 20px rgba(0, 90, 167, 0.4);
+        }
+
+        .control-button.reset-btn {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FF6B6B 100%);
+            color: #2C3E50;
+        }
+
+        .control-button.reset-btn:hover {
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .slider-container {
+            margin: 10px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .slider-value {
+            font-size: 0.75em;
+            font-weight: 600;
+            color: #005AA7;
+            background: rgba(0, 90, 167, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #E6F0FA, #B3D4FF);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFFFFF, #005AA7);
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 90, 167, 0.3);
+            border: 2px solid #FFFFFF;
+            transition: all 0.2s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 90, 167, 0.4);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFFFFF, #005AA7);
+            cursor: pointer;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 3px 10px rgba(0, 90, 167, 0.3);
+        }
+
+        #telemetry-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: #005AA7;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            border: 1px solid #005AA7;
+            box-shadow: 0 10px 30px rgba(0, 90, 167, 0.1);
+            width: 280px;
+            max-width: 90vw;
+        }
+
+        .telemetry-title {
+            color: #005AA7;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(0, 90, 167, 0.1);
+        }
+
+        .telemetry-label {
+            color: #2C3E50;
+            font-weight: bold;
+        }
+
+        .telemetry-value {
+            color: #005AA7;
+            font-weight: bold;
+        }
+
+        #info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: #2C3E50;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            width: 320px;
+            max-width: 90vw;
+            box-shadow: 0 10px 30px rgba(0, 90, 167, 0.1);
+            border: 1px solid #005AA7;
+        }
+
+        .info-title {
+            font-weight: 700;
+            color: #005AA7;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-details {
+            line-height: 1.5;
+        }
+
+        .info-stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            padding: 4px 0;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #005AA7;
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #FFFFFF 0%, #005AA7 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            color: #FFFFFF;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #005AA7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        .loading-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.1em;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .loading-subtext {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 0.85em;
+            opacity: 0.9;
+            text-align: center;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @media (max-width: 1200px) {
+            #controls-panel,
+            #telemetry-panel,
+            #info-panel {
+                width: 280px;
+                max-width: 90vw;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #canvas-container {
+                min-height: auto;
+                height: auto;
+                flex-direction: column;
+                padding-bottom: 20px;
+            }
+
+            #controls-panel,
+            #telemetry-panel,
+            #info-panel {
+                position: relative;
+                margin: 10px auto;
+                width: calc(100% - 20px);
+                max-width: 90vw;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+            }
+
+            body {
+                overflow-y: auto;
+                height: auto;
+            }
+
+            #simulation-canvas {
+                height: 50vh !important;
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing Flight Dynamics</div>
+        <div class="loading-subtext">Loading Wright Flyer Professional Simulation</div>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="simulation-canvas"></canvas>
+        
+        <div id="controls-panel" class="fade-in">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Flight Control</div>
+                    <div class="panel-subtitle">Wright Flyer Dynamics System</div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <div class="section-title">Flight Operations</div>
+                <div class="control-grid">
+                    <button id="playBtn" class="control-button">▶ Launch</button>
+                    <button id="pauseBtn" class="control-button">⏸ Pause</button>
+                </div>
+                <div class="control-grid single" style="margin-top: 8px;">
+                    <button id="resetBtn" class="control-button reset-btn">⏹ Reset Mission</button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <div class="section-title">Camera Systems</div>
+                <div class="control-grid">
+                    <button id="followBtn" class="control-button active">Chase Cam</button>
+                    <button id="cockpitBtn" class="control-button">Cockpit View</button>
+                    <button id="groundBtn" class="control-button">Ground Obs.</button>
+                    <button id="aerialBtn" class="control-button">Aerial View</button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <div class="section-title">Physics Parameters</div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Simulation Speed</span>
+                        <span id="speedValue" class="slider-value">1.0x</span>
+                    </div>
+                    <input type="range" min="0.1" max="3" value="1" step="0.1" class="slider" id="speedSlider">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Wind Factor</span>
+                        <span id="windValue" class="slider-value">5.0 mph</span>
+                    </div>
+                    <input type="range" min="0" max="15" value="5" step="0.5" class="slider" id="windSlider">
+                </div>
+            </div>
+        </div>
+        
+        <div id="telemetry-panel" class="fade-in">
+            <div class="telemetry-title">Flight Telemetry</div>
+            <div class="telemetry-row">
+                <span class="telemetry-label">ALTITUDE:</span>
+                <span class="telemetry-value" id="altitude">0.0 ft</span>
+            </div>
+            <div class="telemetry-row">
+                <span class="telemetry-label">AIRSPEED:</span>
+                <span class="telemetry-value" id="airspeed">0.0 mph</span>
+            </div>
+            <div class="telemetry-row">
+                <span class="telemetry-label">DISTANCE:</span>
+                <span class="telemetry-value" id="distance">0.0 ft</span>
+            </div>
+            <div class="telemetry-row">
+                <span class="telemetry-label">FLIGHT TIME:</span>
+                <span class="telemetry-value" id="flightTime">00:00</span>
+            </div>
+            <div class="telemetry-row">
+                <span class="telemetry-label">ENGINE RPM:</span>
+                <span class="telemetry-value" id="engineRpm">0</span>
+            </div>
+            <div class="telemetry-row">
+                <span class="telemetry-label">WIND SPEED:</span>
+                <span class="telemetry-value" id="windSpeed">5.0 mph</span>
+            </div>
+        </div>
+        
+        <div id="info-panel" class="fade-in">
+            <div class="info-title">Mission Profile</div>
+            <div class="info-details">
+                <div class="info-stat">
+                    <span class="stat-label">Date:</span>
+                    <span class="stat-value">December 17, 1903</span>
+                </div>
+                <div class="info-stat">
+                    <span class="stat-label">Location:</span>
+                    <span class="stat-value">Kitty Hawk, NC</span>
+                </div>
+                <div class="info-stat">
+                    <span class="stat-label">Aircraft:</span>
+                    <span class="stat-value">Wright Flyer I</span>
+                </div>
+                <div class="info-stat">
+                    <span class="stat-label">Pilot:</span>
+                    <span class="stat-value">Orville Wright</span>
+                </div>
+                <div class="info-stat">
+                    <span class="stat-label">Target Duration:</span>
+                    <span class="stat-value">12 seconds</span>
+                </div>
+                <div class="info-stat">
+                    <span class="stat-label">Target Distance:</span>
+                    <span class="stat-value">120 feet</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ProfessionalWrightFlyerSimulation {
+            constructor() {
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+                this.renderer = new THREE.WebGLRenderer({ 
+                    canvas: document.getElementById('simulation-canvas'), 
+                    antialias: true,
+                    alpha: true 
+                });
+                this.clock = new THREE.Clock();
+                
+                // Flight dynamics
+                this.flyer = null;
+                this.isAnimating = false;
+                this.animationSpeed = 1.0;
+                this.windSpeed = 5.0;
+                this.flightTime = 0;
+                this.cameraMode = 'follow';
+                
+                // Physics properties
+                this.velocity = new THREE.Vector3(0, 0, 0);
+                this.acceleration = new THREE.Vector3(0, 0, 0);
+                this.position = new THREE.Vector3(0, 2, -40);
+                this.rotation = new THREE.Vector3(0, 0, 0);
+                this.angularVelocity = new THREE.Vector3(0, 0, 0);
+                
+                // Flight parameters
+                this.thrust = 0;
+                this.lift = 0;
+                this.drag = 0;
+                this.weight = 605; // pounds
+                this.wingArea = 510; // square feet
+                this.airDensity = 1.225;
+                
+                // Telemetry
+                this.altitude = 0;
+                this.airspeed = 0;
+                this.distance = 0;
+                this.engineRpm = 0;
+                
+                this.init();
+                this.setupControls();
+                this.animate();
+            }
+            
+            init() {
+                // Enhanced renderer setup
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setClearColor(0x87CEEB, 0);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.2;
+                
+                // Professional lighting setup
+                this.setupLighting();
+                this.createEnvironment();
+                this.createWrightFlyer();
+                this.createParticleSystem();
+                
+                // Enhanced camera positioning
+                this.camera.position.set(-50, 20, 30);
+                this.camera.lookAt(0, 5, 0);
+                
+                // Hide loading screen with animation
+                setTimeout(() => {
+                    document.getElementById('loading').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loading').style.display = 'none';
+                    }, 500);
+                }, 2000);
+            }
+            
+            setupLighting() {
+                // Ambient light
+                const ambientLight = new THREE.AmbientLight(0x87CEEB, 0.4);
+                this.scene.add(ambientLight);
+                
+                // Main directional light (sun)
+                const sunLight = new THREE.DirectionalLight(0xFFF8DC, 1.2);
+                sunLight.position.set(100, 150, 50);
+                sunLight.castShadow = true;
+                sunLight.shadow.mapSize.width = 4096;
+                sunLight.shadow.mapSize.height = 4096;
+                sunLight.shadow.camera.near = 1;
+                sunLight.shadow.camera.far = 500;
+                sunLight.shadow.camera.left = -200;
+                sunLight.shadow.camera.right = 200;
+                sunLight.shadow.camera.top = 200;
+                sunLight.shadow.camera.bottom = -200;
+                sunLight.shadow.bias = -0.0001;
+                this.scene.add(sunLight);
+                
+                // Fill light
+                const fillLight = new THREE.DirectionalLight(0x87CEEB, 0.3);
+                fillLight.position.set(-50, 50, -50);
+                this.scene.add(fillLight);
+                
+                // Atmospheric light
+                const atmosLight = new THREE.HemisphereLight(0x87CEEB, 0xF5F5DC, 0.6);
+                this.scene.add(atmosLight);
+            }
+            
+            createEnvironment() {
+                // Enhanced ground with texture-like appearance
+                const groundGeometry = new THREE.PlaneGeometry(500, 500, 50, 50);
+                const groundMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0xF5F5DC,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                
+                // Add height variation to ground
+                const positions = groundGeometry.attributes.position;
+                for (let i = 0; i < positions.count; i++) {
+                    const y = Math.sin(positions.getX(i) * 0.01) * Math.cos(positions.getZ(i) * 0.01) * 0.5;
+                    positions.setY(i, y);
+                }
+                positions.needsUpdate = true;
+                groundGeometry.computeVertexNormals();
+                
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                this.scene.add(ground);
+                
+                // Enhanced sand dunes with better distribution
+                for (let i = 0; i < 15; i++) {
+                    const duneGeometry = new THREE.SphereGeometry(
+                        Math.random() * 15 + 8, 
+                        12, 
+                        8
+                    );
+                    const duneMaterial = new THREE.MeshLambertMaterial({ 
+                        color: new THREE.Color().setHSL(0.1, 0.3, 0.6 + Math.random() * 0.2)
+                    });
+                    const dune = new THREE.Mesh(duneGeometry, duneMaterial);
+                    
+                    dune.position.set(
+                        (Math.random() - 0.5) * 400,
+                        -5 + Math.random() * 3,
+                        (Math.random() - 0.5) * 400
+                    );
+                    dune.scale.y = 0.2 + Math.random() * 0.3;
+                    dune.rotation.y = Math.random() * Math.PI * 2;
+                    dune.castShadow = true;
+                    dune.receiveShadow = true;
+                    this.scene.add(dune);
+                }
+                
+                // Volumetric clouds
+                for (let i = 0; i < 20; i++) {
+                    const cloudGroup = new THREE.Group();
+                    
+                    for (let j = 0; j < 3 + Math.random() * 4; j++) {
+                        const cloudGeometry = new THREE.SphereGeometry(
+                            Math.random() * 12 + 8, 
+                            8, 
+                            6
+                        );
+                        const cloudMaterial = new THREE.MeshLambertMaterial({ 
+                            color: 0xffffff,
+                            transparent: true,
+                            opacity: 0.7 + Math.random() * 0.2
+                        });
+                        const cloudPart = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                        
+                        cloudPart.position.set(
+                            (Math.random() - 0.5) * 30,
+                            (Math.random() - 0.5) * 8,
+                            (Math.random() - 0.5) * 30
+                        );
+                        cloudGroup.add(cloudPart);
+                    }
+                    
+                    cloudGroup.position.set(
+                        (Math.random() - 0.5) * 600,
+                        Math.random() * 40 + 60,
+                        (Math.random() - 0.5) * 600
+                    );
+                    this.scene.add(cloudGroup);
+                }
+                
+                // Add horizon line effect
+                const horizonGeometry = new THREE.PlaneGeometry(1000, 200);
+                const horizonMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0x87CEEB,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                const horizon = new THREE.Mesh(horizonGeometry, horizonMaterial);
+                horizon.position.set(0, 100, -500);
+                this.scene.add(horizon);
+            }
+            
+            createWrightFlyer() {
+                this.flyer = new THREE.Group();
+                
+                // Enhanced main frame with more detail
+                const frameGeometry = new THREE.BoxGeometry(0.4, 0.4, 14);
+                const frameMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x8B4513,
+                    shininess: 10
+                });
+                const mainFrame = new THREE.Mesh(frameGeometry, frameMaterial);
+                mainFrame.castShadow = true;
+                this.flyer.add(mainFrame);
+                
+                // Enhanced wings with more realistic proportions
+                const wingGeometry = new THREE.BoxGeometry(14, 0.15, 2.5);
+                const wingMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xFAF0E6,
+                    transparent: true,
+                    opacity: 0.95,
+                    shininess: 5
+                });
+                
+                // Upper wings
+                const upperWingLeft = new THREE.Mesh(wingGeometry, wingMaterial);
+                upperWingLeft.position.set(-7, 1.2, -0.5);
+                upperWingLeft.castShadow = true;
+                this.flyer.add(upperWingLeft);
+                
+                const upperWingRight = new THREE.Mesh(wingGeometry, wingMaterial);
+                upperWingRight.position.set(7, 1.2, -0.5);
+                upperWingRight.castShadow = true;
+                this.flyer.add(upperWingRight);
+                
+                // Lower wings
+                const lowerWingLeft = new THREE.Mesh(wingGeometry, wingMaterial);
+                lowerWingLeft.position.set(-7, -1.2, -0.5);
+                lowerWingLeft.castShadow = true;
+                this.flyer.add(lowerWingLeft);
+                
+                const lowerWingRight = new THREE.Mesh(wingGeometry, wingMaterial);
+                lowerWingRight.position.set(7, -1.2, -0.5);
+                lowerWingRight.castShadow = true;
+                this.flyer.add(lowerWingRight);
+                
+                // Enhanced wing struts
+                for (let i = -2; i <= 2; i++) {
+                    const strutGeometry = new THREE.CylinderGeometry(0.08, 0.08, 2.4);
+                    const strut = new THREE.Mesh(strutGeometry, frameMaterial);
+                    strut.position.set(i * 3.5, 0, -0.5);
+                    strut.castShadow = true;
+                    this.flyer.add(strut);
+                }
+                
+                // Enhanced propellers with more detail
+                const propGeometry = new THREE.BoxGeometry(0.2, 5, 0.3);
+                const propMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x654321,
+                    shininess: 20
+                });
+                
+                this.leftProp = new THREE.Mesh(propGeometry, propMaterial);
+                this.leftProp.position.set(-2.5, 0, 3);
+                this.leftProp.castShadow = true;
+                this.flyer.add(this.leftProp);
+                
+                this.rightProp = new THREE.Mesh(propGeometry, propMaterial);
+                this.rightProp.position.set(2.5, 0, 3);
+                this.rightProp.castShadow = true;
+                this.flyer.add(this.rightProp);
+                
+                // Enhanced engine
+                const engineGeometry = new THREE.BoxGeometry(1.2, 1, 2);
+                const engineMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x404040,
+                    shininess: 30
+                });
+                const engine = new THREE.Mesh(engineGeometry, engineMaterial);
+                engine.position.set(0, 0, 2);
+                engine.castShadow = true;
+                this.flyer.add(engine);
+                
+                // Pilot position with more detail
+                const pilotGeometry = new THREE.BoxGeometry(0.8, 0.4, 1.5);
+                const pilotMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                const pilot = new THREE.Mesh(pilotGeometry, pilotMaterial);
+                pilot.position.set(-1.5, -0.6, 0);
+                pilot.castShadow = true;
+                this.flyer.add(pilot);
+                
+                // Control surfaces
+                const rudderGeometry = new THREE.BoxGeometry(0.1, 2, 1);
+                const rudder = new THREE.Mesh(rudderGeometry, wingMaterial);
+                rudder.position.set(0, 0, -7);
+                rudder.castShadow = true;
+                this.flyer.add(rudder);
+                
+                // Landing skids
+                const skidGeometry = new THREE.BoxGeometry(12, 0.2, 0.4);
+                const skidMaterial = new THREE.MeshPhongMaterial({ color: 0x654321 });
+                const leftSkid = new THREE.Mesh(skidGeometry, skidMaterial);
+                leftSkid.position.set(-6, -1.8, 0);
+                leftSkid.castShadow = true;
+                this.flyer.add(leftSkid);
+                
+                const rightSkid = new THREE.Mesh(skidGeometry, skidMaterial);
+                rightSkid.position.set(6, -1.8, 0);
+                rightSkid.castShadow = true;
+                this.flyer.add(rightSkid);
+                
+                // Wire bracing (simplified)
+                for (let i = 0; i < 8; i++) {
+                    const wireGeometry = new THREE.CylinderGeometry(0.02, 0.02, 3);
+                    const wireMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+                    const wire = new THREE.Mesh(wireGeometry, wireMaterial);
+                    
+                    const angle = (i / 8) * Math.PI * 2;
+                    wire.position.set(Math.cos(angle) * 4, 0, Math.sin(angle) * 2);
+                    wire.rotation.z = angle;
+                    this.flyer.add(wire);
+                }
+                
+                // Set initial position
+                this.flyer.position.copy(this.position);
+                this.flyer.castShadow = true;
+                this.scene.add(this.flyer);
+            }
+            
+            createParticleSystem() {
+                // Wind particles for visual effect
+                const particleCount = 1000;
+                const particles = new THREE.BufferGeometry();
+                const positions = new Float32Array(particleCount * 3);
+                const velocities = new Float32Array(particleCount * 3);
+                
+                for (let i = 0; i < particleCount * 3; i += 3) {
+                    positions[i] = (Math.random() - 0.5) * 200;
+                    positions[i + 1] = Math.random() * 50;
+                    positions[i + 2] = (Math.random() - 0.5) * 200;
+                    
+                    velocities[i] = (Math.random() - 0.5) * 2;
+                    velocities[i + 1] = (Math.random() - 0.5) * 0.5;
+                    velocities[i + 2] = Math.random() * 5 + 2;
+                }
+                
+                particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                particles.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+                
+                const particleMaterial = new THREE.PointsMaterial({
+                    color: 0xffffff,
+                    size: 0.5,
+                    transparent: true,
+                    opacity: 0.3,
+                    blending: THREE.AdditiveBlending
+                });
+                
+                this.particleSystem = new THREE.Points(particles, particleMaterial);
+                this.scene.add(this.particleSystem);
+            }
+            
+            setupControls() {
+                // Animation controls
+                document.getElementById('playBtn').addEventListener('click', () => {
+                    this.startFlight();
+                });
+                
+                document.getElementById('pauseBtn').addEventListener('click', () => {
+                    this.pauseFlight();
+                });
+                
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.resetAnimation();
+                });
+                
+                // Camera controls
+                document.getElementById('followBtn').addEventListener('click', () => {
+                    this.cameraMode = 'follow';
+                    this.updateCameraButtons();
+                });
+                
+                document.getElementById('cockpitBtn').addEventListener('click', () => {
+                    this.cameraMode = 'cockpit';
+                    this.updateCameraButtons();
+                });
+                
+                document.getElementById('groundBtn').addEventListener('click', () => {
+                    this.cameraMode = 'ground';
+                    this.updateCameraButtons();
+                });
+                
+                document.getElementById('aerialBtn').addEventListener('click', () => {
+                    this.cameraMode = 'aerial';
+                    this.updateCameraButtons();
+                });
+                
+                // Speed control
+                document.getElementById('speedSlider').addEventListener('input', (e) => {
+                    this.animationSpeed = parseFloat(e.target.value);
+                    document.getElementById('speedValue').textContent = this.animationSpeed.toFixed(1) + 'x';
+                });
+                
+                // Wind control
+                document.getElementById('windSlider').addEventListener('input', (e) => {
+                    this.windSpeed = parseFloat(e.target.value);
+                    document.getElementById('windValue').textContent = this.windSpeed.toFixed(1) + ' mph';
+                });
+                
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+            }
+            
+            startFlight() {
+                this.isAnimating = true;
+                document.getElementById('playBtn').classList.add('active');
+                document.getElementById('pauseBtn').classList.remove('active');
+            }
+            
+            pauseFlight() {
+                this.isAnimating = false;
+                document.getElementById('pauseBtn').classList.add('active');
+                document.getElementById('playBtn').classList.remove('active');
+            }
+            
+            updateCameraButtons() {
+                document.querySelectorAll('#controls-panel .control-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                const activeButton = document.getElementById(this.cameraMode + 'Btn');
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+            }
+            
+            resetAnimation() {
+                this.flightTime = 0;
+                this.position.set(0, 2, -40);
+                this.velocity.set(0, 0, 0);
+                this.acceleration.set(0, 0, 0);
+                this.rotation.set(0, 0, 0);
+                this.angularVelocity.set(0, 0, 0);
+                this.thrust = 0;
+                this.engineRpm = 0;
+                
+                this.flyer.position.copy(this.position);
+                this.flyer.rotation.set(0, 0, 0);
+                
+                this.isAnimating = false;
+                document.getElementById('playBtn').classList.remove('active');
+                document.getElementById('pauseBtn').classList.remove('active');
+                
+                this.updateTelemetry();
+            }
+            
+            calculatePhysics(deltaTime) {
+                if (!this.isAnimating) return;
+                
+                const dt = deltaTime * this.animationSpeed;
+                this.flightTime += dt;
+                
+                // Engine thrust calculation
+                if (this.flightTime < 15) {
+                    this.thrust = 180; // pounds of thrust
+                    this.engineRpm = 1020 + Math.sin(this.flightTime * 10) * 50;
+                } else {
+                    this.thrust = 0;
+                    this.engineRpm = Math.max(0, this.engineRpm - 100);
+                }
+                
+                // Calculate airspeed
+                this.airspeed = Math.sqrt(
+                    this.velocity.x * this.velocity.x + 
+                    this.velocity.z * this.velocity.z
+                ) * 2.237; // m/s to mph
+                
+                // Calculate lift (simplified)
+                const angleOfAttack = this.rotation.x;
+                const liftCoeff = 0.4 + Math.sin(angleOfAttack) * 0.8;
+                this.lift = 0.5 * this.airDensity * (this.airspeed / 2.237) * (this.airspeed / 2.237) * this.wingArea * liftCoeff * 0.01;
+                
+                // Calculate drag
+                const dragCoeff = 0.05 + Math.abs(angleOfAttack) * 0.02;
+                this.drag = 0.5 * this.airDensity * (this.airspeed / 2.237) * (this.airspeed / 2.237) * this.wingArea * dragCoeff * 0.01;
+                
+                // Wind effects
+                const windForce = this.windSpeed * 0.1;
+                const windX = Math.sin(this.flightTime * 0.5) * windForce;
+                const windY = Math.sin(this.flightTime * 0.3) * windForce * 0.5;
+                
+                // Apply forces
+                this.acceleration.x = windX;
+                this.acceleration.y = (this.lift - this.weight) * 0.001 + windY;
+                this.acceleration.z = (this.thrust - this.drag) * 0.005;
+                
+                // Gravity
+                this.acceleration.y -= 9.81;
+                
+                // Update velocity
+                this.velocity.addScaledVector(this.acceleration, dt);
+                
+                // Apply damping
+                this.velocity.multiplyScalar(0.995);
+                
+                // Update position
+                this.position.addScaledVector(this.velocity, dt);
+                
+                // Ground collision
+                if (this.position.y <= 2) {
+                    this.position.y = 2;
+                    this.velocity.y = Math.max(0, this.velocity.y);
+                    
+                    if (this.flightTime > 12 && this.airspeed < 15) {
+                        this.isAnimating = false;
+                        document.getElementById('playBtn').classList.remove('active');
+                        document.getElementById('pauseBtn').classList.remove('active');
+                    }
+                }
+                
+                // Calculate rotation based on physics
+                if (this.airspeed > 5) {
+                    // Pitch control
+                    const targetPitch = -0.05 + (this.velocity.y * 0.1);
+                    this.rotation.x += (targetPitch - this.rotation.x) * dt * 2;
+                    
+                    // Banking from wind
+                    const targetRoll = windX * 0.05;
+                    this.rotation.z += (targetRoll - this.rotation.z) * dt * 3;
+                    
+                    // Yaw stability
+                    this.rotation.y += (0 - this.rotation.y) * dt * 1.5;
+                }
+                
+                // Update flyer transform
+                this.flyer.position.copy(this.position);
+                this.flyer.rotation.set(this.rotation.x, this.rotation.y, this.rotation.z);
+                
+                // Calculate telemetry
+                this.altitude = Math.max(0, (this.position.y - 2) * 3.28084); // meters to feet
+                this.distance = (this.position.z + 40) * 3.28084; // meters to feet
+            }
+            
+            updateParticles(deltaTime) {
+                if (!this.particleSystem) return;
+                
+                const positions = this.particleSystem.geometry.attributes.position.array;
+                const velocities = this.particleSystem.geometry.attributes.velocity.array;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    // Update positions
+                    positions[i] = positions[i] + velocities[i] * deltaTime;
+                    positions[i + 1] = positions[i + 1] + velocities[i + 1] * deltaTime;
+                    positions[i + 2] = positions[i + 2] + velocities[i + 2] * deltaTime;
+                    
+                    // Reset particles that have moved too far
+                    if (positions[i + 2] > 100) {
+                        positions[i] = (Math.random() - 0.5) * 200;
+                        positions[i + 1] = Math.random() * 50;
+                        positions[i + 2] = -100;
+                    }
+                }
+                
+                this.particleSystem.geometry.attributes.position.needsUpdate = true;
+            }
+            
+            updateCamera() {
+                const flyerPos = this.flyer.position;
+                const smoothFactor = 0.05;
+                
+                switch (this.cameraMode) {
+                    case 'follow':
+                        const targetFollowPos = new THREE.Vector3(
+                            flyerPos.x - 30,
+                            flyerPos.y + 12,
+                            flyerPos.z + 20
+                        );
+                        this.camera.position.lerp(targetFollowPos, smoothFactor);
+                        this.camera.lookAt(flyerPos);
+                        break;
+                        
+                    case 'cockpit':
+                        const cockpitPos = new THREE.Vector3(
+                            flyerPos.x - 1.5,
+                            flyerPos.y + 0.5,
+                            flyerPos.z
+                        );
+                        this.camera.position.copy(cockpitPos);
+                        this.camera.rotation.copy(this.flyer.rotation);
+                        this.camera.rotateY(Math.PI);
+                        break;
+                        
+                    case 'ground':
+                        this.camera.position.set(15, 4, -35);
+                        this.camera.lookAt(flyerPos);
+                        break;
+                        
+                    case 'aerial':
+                        const targetAerialPos = new THREE.Vector3(
+                            flyerPos.x + 10,
+                            flyerPos.y + 50,
+                            flyerPos.z - 30
+                        );
+                        this.camera.position.lerp(targetAerialPos, smoothFactor);
+                        this.camera.lookAt(flyerPos);
+                        break;
+                }
+            }
+            
+            updateTelemetry() {
+                document.getElementById('altitude').textContent = this.altitude.toFixed(1) + ' ft';
+                document.getElementById('airspeed').textContent = this.airspeed.toFixed(1) + ' mph';
+                document.getElementById('distance').textContent = this.distance.toFixed(1) + ' ft';
+                
+                const minutes = Math.floor(this.flightTime / 60);
+                const seconds = Math.floor(this.flightTime % 60);
+                document.getElementById('flightTime').textContent = 
+                    String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+                
+                document.getElementById('engineRpm').textContent = Math.floor(this.engineRpm);
+                document.getElementById('windSpeed').textContent = this.windSpeed.toFixed(1) + ' mph';
+            }
+            
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                
+                const deltaTime = this.clock.getDelta();
+                
+                // Update physics simulation
+                this.calculatePhysics(deltaTime);
+                
+                // Update particle system
+                this.updateParticles(deltaTime);
+                
+                // Update camera
+                this.updateCamera();
+                
+                // Update telemetry display
+                this.updateTelemetry();
+                
+                // Animate propellers
+                if (this.leftProp && this.rightProp && this.isAnimating) {
+                    const propSpeed = (this.engineRpm / 60) * deltaTime * 2 * Math.PI;
+                    this.leftProp.rotation.z += propSpeed;
+                    this.rightProp.rotation.z -= propSpeed;
+                }
+                
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+        
+        // Initialize professional simulation
+        window.addEventListener('load', () => {
+            new ProfessionalWrightFlyerSimulation();
+        });
+    </script>
+</body>
+</html>

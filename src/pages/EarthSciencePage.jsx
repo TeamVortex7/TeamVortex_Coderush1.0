@@ -2,27 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import DashboardNavbar from '../components/DashboardNavbar'; // Import the new component
 
-// --- Main Earth Science Page Component ---
-export default function EarthSciencePage() {
-    const earthScienceLabs = [
+// --- Main History Page Component ---
+export default function GeographyPage() {
+    const geographyLabs = [
         { 
             id: 1, 
-            title: "Titration Experiment", 
-            description: "Master the technique of determining the concentration of an unknown solution.",
-            url: "/labs/chemistry-titration.html" 
-        },
-        { 
-            id: 2, 
-            title: "Chemical Bonding", 
-            description: "Explore ionic, covalent, and metallic bonds in an interactive 3D environment.",
-            url: "/labs/chemistry-bonding.html" 
-        },
-        { 
-            id: 3, 
-            title: "Periodic Table Explorer", 
-            description: "An in-depth look at the properties and trends of the elements.",
-            url: "/labs/chemistry-periodic-table.html" 
-        },
+            title: "Earth Crust", 
+            description: "Step back in time and walk through photorealistic reconstructions of the world's most iconic landmarks. Explore ancient ruins, uncover their hidden secrets, and witness pivotal historical moments as if you were actually there.",
+            url: "/labs/earthcrust.html" 
+        },        
     ];
 
     return (
@@ -38,13 +26,13 @@ export default function EarthSciencePage() {
             <div className="container mx-auto pt-24 sm:pt-28 p-4 relative z-10">
                 <div className="text-center mb-12">
                     <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                        Earth Science Labs
+                        Geogrpahy Labs
                     </h1>
                     <p className="text-gray-600 mt-2 text-base sm:text-lg">Select a lab to begin your experiment.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {earthScienceLabs.map(lab => (
+                    {geographyLabs.map(lab => (
                         <a 
                             href={lab.url} 
                             key={lab.id} 
